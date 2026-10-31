@@ -1,6 +1,6 @@
 # Business context
 
-> Status: **planned**. Paths below are the agreed target layout; no code yet. Update when implemented.
+> Status: **done** (Sprint 2). Paths below are real; keep them in sync with the code.
 
 - Source of truth for rules: `knowledge-base/policies/*.md`, especially `agent-authority.md`.
 - **Autonomous**: reads, return labels, duplicate-charge refunds, goodwill credit ≤ $25,

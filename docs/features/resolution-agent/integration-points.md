@@ -1,6 +1,6 @@
 # Integration points
 
-> Status: **planned**. Paths below are the agreed target layout; no code yet. Update when implemented.
+> Status: **done** (Sprint 2). Paths below are real; keep them in sync with the code.
 
 - **llm-budget-guard**: every LLM call via `app.llm.client.complete()` / `stream()`; never the SDK directly.
 - **business-tools**: `app.tools.registry.call(name, args)`; verifiers in `verify.py` use read tools.

@@ -16,9 +16,9 @@ Each sprint ends with: docs updated (`docs/agents/`), spend logged (`budget.md`)
 - KB ingestion: chunk → embed → `kb_chunks` (pgvector); retrieval function
 - Admin API: demo customers, reset, usage, KB search
 
-## Sprint 2: Agent
+## Sprint 2: Agent ✅
 - LangGraph graph: understand → investigate → retrieve_policy → plan → act → verify → respond
-- Confirmation interrupt for sensitive actions
+- Confirmation step for sensitive actions (state persisted per conversation)
 - SSE streaming of tokens and action events
 - Scenario tests (replay) for the hero and secondary scenarios
 

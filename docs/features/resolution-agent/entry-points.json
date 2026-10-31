@@ -1,27 +1,46 @@
 {
   "feature": "resolution-agent",
-  "status": "planned",
+  "status": "done",
   "http": [
     {
       "method": "POST",
       "path": "/api/chat",
-      "handler": "backend/app/api/chat.py:chat_stream",
+      "handler": "backend/app/api/chat.py:chat",
       "notes": "SSE; body {conversation_id, customer_id, message}"
     },
     {
       "method": "POST",
       "path": "/api/chat/confirm",
-      "handler": "backend/app/api/chat.py:confirm_action",
-      "notes": "resume interrupted graph with {conversation_id, action_id, approved}"
+      "handler": "backend/app/api/chat.py:confirm",
+      "notes": "SSE; body {conversation_id, approved}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/conversations/{id}",
+      "handler": "backend/app/api/chat.py:get_conversation",
+      "notes": "transcript"
+    }
+  ],
+  "cli": [
+    {
+      "command": "LLM_MODE=live uv run python -m scripts.live_smoke",
+      "notes": "real Claude end-to-end (~$0.07 cold)"
     }
   ],
   "code": [
     "backend/app/agent/graph.py:build_graph",
-    "backend/app/agent/state.py:AgentState",
-    "backend/app/agent/nodes/",
-    "backend/app/agent/prompts/"
+    "backend/app/agent/service.py",
+    "backend/app/agent/brain.py",
+    "backend/app/agent/rules.py",
+    "backend/app/agent/prompts.py",
+    "backend/app/agent/authority.py",
+    "backend/app/agent/facts.py",
+    "backend/app/agent/schemas.py",
+    "backend/app/agent/state.py",
+    "backend/app/agent/events.py"
   ],
   "tests": [
-    "backend/tests/agent/test_scenarios.py"
+    "backend/tests/agent/test_scenarios.py",
+    "backend/tests/agent/test_chat_api.py"
   ]
 }
