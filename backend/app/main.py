@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api import admin, chat
+from app.api import admin, chat, github, repos, tickets
 from app.config import get_settings
 from app.db.session import dispose_engine
 
@@ -33,6 +33,9 @@ def create_app() -> FastAPI:
 
     app.include_router(admin.router)
     app.include_router(chat.router)
+    app.include_router(repos.router)
+    app.include_router(tickets.router)
+    app.include_router(github.router)
     _mount_demo_store(app)
     return app
 
