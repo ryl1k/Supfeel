@@ -24,7 +24,7 @@ INTENT_KEYWORDS: list[tuple[str, list[str]]] = [
     ("pause_membership", ["pause my membership", "pause membership", "pause the club", "pause my subscription", "pause it", "pause instead"]),
     ("cancel_order", ["cancel my order", "cancel the order", "cancel order", "cancel my new order"]),
     ("change_address", ["change my address", "change the address", "update my address", "update address", "wrong address",
-                        "ship it to", "ship to a different", "new address", "moved"]),
+                        "ship it to", "ship to a different", "new address", "moved", "ship my order to", "ship my new order to"]),
     ("damaged_or_defective", ["sole", "separat", "broken", "defect", "falling apart", "ripped", "damaged", "torn", "came apart", "coming apart"]),
     ("lost_or_delayed", ["where is my", "hasn't arrived", "has not arrived", "not arrived", "never arrived", "lost", "stuck",
                          "late", "delayed", "still waiting", "not received", "hasn't come", "no update"]),
@@ -93,6 +93,31 @@ def understand(message: str, previous: dict[str, Any] | None = None) -> Intent:
     order = ORDER_RE.search(message)
     addr = ADDRESS_RE.search(message)
     prev_intent = (previous.get("intent") or {}).get("intent")
+
+    # Combinations the keyword table can't express.
+    membership_words = ("membership", "velora club", "the club", "subscription")
+    if any(w in text for w in membership_words) and "cancel" in text:
+        intent = "cancel_membership"
+    elif any(w in text for w in membership_words) and "pause" in text:
+        intent = "pause_membership"
+    elif (
+        addr
+        and intent in ("other", "change_address")
+        and ("ship" in text or "send" in text or "address" in text)
+    ):
+        intent = "change_address"
+
+    # Changing the resolution of an open proposal ("can I get a refund instead?") keeps the problem.
+    if (
+        previous.get("outcome") == "awaiting_confirmation"
+        and prev_intent in ("lost_or_delayed", "comfort_exchange", "damaged_or_defective")
+        and intent in ("other", "return_refund")
+        and pref
+    ):
+        intent = prev_intent
+        order_id = (previous.get("intent") or {}).get("order_id")
+        if order_id and not order:
+            order = ORDER_RE.search(order_id)
 
     # Follow-up to our clarifying question or pause offer: keep the earlier intent.
     if previous.get("outcome") == "asked" and prev_intent:

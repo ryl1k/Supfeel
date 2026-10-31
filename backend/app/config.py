@@ -22,6 +22,8 @@ class Settings(BaseSettings):
 
     database_url: str = "postgresql+asyncpg://postgres:postgres@localhost:5433/supfeel"
     cors_origins: str = "http://localhost:3000"
+    # Optional regex for extra origins, e.g. Vercel previews: https://supfeel-.*\.vercel\.app
+    cors_origin_regex: str = ""
     admin_token: str = "dev-admin-token"
 
     llm_mode: Literal["live", "replay", "mock"] = "mock"

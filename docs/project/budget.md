@@ -57,3 +57,4 @@ Update after each sprint (from `GET /api/admin/usage`, which sums `llm_usage`).
 | 1 | 0.00 | 0.00 | All work in mock mode (hash embeddings, no Claude calls) |
 | 2 | 0.07 | 0.0001 | One live smoke run (4 turns) + one OpenAI KB ingest. Measured ≈ $0.017 per turn with caching |
 | 3 | 0.00 | 0.00 | UI built against LLM_MODE=mock |
+| 4 | 0.067 | 0.00 | Second live smoke run after the prompt change. **Cumulative: $0.135 Claude, $0.0001 OpenAI** |

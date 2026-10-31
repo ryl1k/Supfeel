@@ -1,12 +1,12 @@
 # Agent context: current state
 
-_Last updated: 2026-10-31, end of Sprint 3._
+_Last updated: 2026-10-31, end of Sprint 4._
 
 ## Where we are
 
-- Sprints 0–3 are **done**: backend (agent + SSE API, 41 tests) and frontend (landing + chat) both work locally.
-- Live Claude path verified (≈ $0.017 per turn). Total spend so far: $0.07.
-- Remaining: deployment (Sprint 4).
+- Sprints 0–4 are **done** on the code side: backend (agent + SSE API, 51 tests), frontend (landing + chat), deploy configs, CI.
+- Live Claude path verified twice (≈ $0.017 per turn). Total spend: $0.135 Claude, $0.0001 OpenAI.
+- Remaining: the real deploy, which needs the user's accounts (`docs/project/deployment.md`), and the hackathon rules (DevRelay MCP).
 - Active branch: `dev`. `main` is updated at each sprint end.
 
 ## Run locally
@@ -14,8 +14,7 @@ _Last updated: 2026-10-31, end of Sprint 3._
 ```bash
 docker compose up -d                       # pgvector on localhost:5433
 cd backend && uv sync
-uv run python -m app.db.seed               # tables + demo data
-uv run python -m app.rag.ingest            # embed knowledge base (mock hash in LLM_MODE=mock)
+uv run python -m app.boot                  # tables + demo data (if empty) + KB embeddings
 uv run uvicorn app.main:app --reload       # http://localhost:8000/api/health
 cd ../frontend && npm install && npm run dev  # http://localhost:3000 (NEXT_PUBLIC_API_URL defaults to :8000)
 uv run pytest                              # uses DB supfeel_test
@@ -36,12 +35,16 @@ LLM_MODE=live uv run python -m scripts.live_smoke   # real Claude end to end (~$
 | `knowledge-base/` | 8 policy docs + 3 FAQ docs for the fictional store **Velora** |
 | `backend/` | FastAPI app: `app/db`, `app/llm`, `app/tools`, `app/rag`, `app/api` |
 | `frontend/` | Next.js 16 app: `/` landing, `/chat` agent UI |
+| `backend/Dockerfile`, `railway.json`, `frontend/vercel.json` | Deploy configs (see `docs/project/deployment.md`) |
+| `.github/workflows/ci.yml` | CI: backend tests + frontend build |
 | `docker-compose.yml` | Local pgvector Postgres (port 5433) |
 | `.env` (untracked) | Has `ANTHROPIC_API_KEY`, `OPENAI_API_KEY` |
 
-## Next up: Sprint 4 (deploy)
+## Next up
 
-Dockerfile + Railway config for the backend, Vercel for the frontend, a Neon `DATABASE_URL`. Accounts are needed from the user.
+1. Deploy per `docs/project/deployment.md` (Neon → Railway → Vercel → CORS).
+2. After the user runs `devrelay login` and restarts Claude Code: fetch the event's rules, judging criteria and sponsor tracks (DevRelay MCP), then tailor `docs/project/brief.md` and the demo script.
+3. Nice-to-have: restore the transcript on reload, Qloo provider.
 
 ## Key decisions
 
