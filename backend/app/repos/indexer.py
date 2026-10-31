@@ -105,6 +105,11 @@ async def run_job(job_id: str) -> None:
             )
             rerun = False
             await s.execute(update(Repo).where(Repo.id == repo_id).values(status="failed", error=job.error))
+            account_id = (await s.get(Repo, repo_id)).account_id
+        if job.trigger != "push":  # imports and manual re-indexes were charged up front
+            from app.accounts import billing
+
+            await billing.refund(account_id, "index", job_id, f"Index run {job_id} failed")
         return
     if rerun:
         await start_job(repo_id, trigger="push")

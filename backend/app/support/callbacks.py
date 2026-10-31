@@ -9,7 +9,7 @@ import logging
 import httpx
 
 from app.config import get_settings
-from app.db.models import Ticket
+from app.db.models import ApiKey, Ticket
 from app.db.session import session_scope
 from app.obs import trace
 
@@ -22,12 +22,13 @@ async def fire(ticket_id: str, event: str) -> bool:
     async with session_scope() as s:
         t = await s.get(Ticket, ticket_id)
         url = (t.meta or {}).get("callback_url") if t else None
-        key_id = (t.meta or {}).get("key_id", "") if t else ""
+        key = await s.get(ApiKey, (t.meta or {}).get("key_id", "")) if t else None
+        secret = key.key_hash if key else get_settings().admin_token
     if not url:
         return False
     body = json.dumps({"event": event, "ticket": await relay(ticket_id)}, default=str).encode()
-    # Receivers can verify with HMAC-SHA256(admin-issued key id) — a lightweight integrity check for the demo.
-    sig = hmac.new((key_id or get_settings().admin_token).encode(), body, hashlib.sha256).hexdigest()
+    # Signed with sha256(<your sf_live_ key>) as the HMAC secret: the receiver recomputes it from its own key.
+    sig = hmac.new(secret.encode(), body, hashlib.sha256).hexdigest()
     async with trace.span(f"callback {event}", kind="http", trace_id=ticket_id, url=url) as sp:
         try:
             async with httpx.AsyncClient(timeout=10) as http:

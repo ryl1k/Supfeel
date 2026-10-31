@@ -13,7 +13,8 @@ from app.db.session import session_scope
 
 router = APIRouter(prefix="/api")
 DAYS = 14
-AUTOMATED = {"answered", "resolved", "fix_in_review", "fix_verified", "reported", "awaiting_confirmation"}
+# Outcomes Supfeel reached without a human (a ticket waiting on the customer's OK isn't counted yet).
+AUTOMATED = {"answered", "resolved", "fix_in_review", "fix_verified", "reported"}
 
 
 @router.get("/dashboard")

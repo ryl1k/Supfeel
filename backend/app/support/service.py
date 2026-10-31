@@ -103,6 +103,8 @@ async def _drive(ticket: Ticket, initial: dict[str, Any], queue: asyncio.Queue) 
         await queue.put({"event": "done", "data": summary})
     except Exception:
         log.exception("ticket turn failed for %s", ticket.id)
+        if initial.get("first_turn"):  # the ticket was charged but never got an answer
+            await billing.refund(initial.get("account_id"), "ticket", ticket.id, f"Ticket {ticket.id} failed")
         await queue.put(
             {
                 "event": "error",
@@ -238,7 +240,7 @@ async def create_ticket(
     message = message.strip()[:4000]
     yield {"event": "ticket", "data": {"ticket_id": t.id}}
     history = _history(await _messages(t.id))[:-1]  # the first-line agent's transcript, if any
-    async for ev in _stream(t, _initial(t, business, message, history)):
+    async for ev in _stream(t, {**_initial(t, business, message, history), "first_turn": True}):
         yield ev
 
 
@@ -270,7 +272,7 @@ async def post_message(ticket_id: str, message: str) -> AsyncIterator[dict[str, 
             row = await s.get(TicketAction, pending["id"])
             if row and row.status == "proposed":
                 row.status = "declined"
-    async for ev in _stream(t, _initial(t, business, message, history)):
+    async for ev in _stream(t, {**_initial(t, business, message, history), "first_turn": True}):
         yield ev
 
 
@@ -290,7 +292,7 @@ async def confirm(ticket_id: str, approved: bool) -> AsyncIterator[dict[str, Any
 
 
 async def _confirm(
-    t: Ticket, business: str, approved: bool, history: list[dict[str, str]]
+    t: Ticket, business: tuple[str, str | None], approved: bool, history: list[dict[str, str]]
 ) -> AsyncIterator[dict[str, Any]]:
     initial = {**_initial(t, business, "Yes, go ahead." if approved else "No, don't do that.", history),
                "mode": "confirm", "approved": approved, "action": (t.state or {}).get("pending_action"), "route": "act",

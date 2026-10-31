@@ -97,7 +97,10 @@ async def _run(ctx: Context, events, wait: bool) -> str | None:
         return ticket_id
 
     # Fire and forget: start the turn, return as soon as the ticket exists.
-    first = await anext(events)
+    try:
+        first = await anext(events)
+    except service.TicketError as e:
+        raise ToolError(str(e)) from e
     if first["event"] == "error":
         raise ToolError(first["data"].get("message", "error"))
     ticket_id = first["data"]["ticket_id"]

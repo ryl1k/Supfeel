@@ -51,6 +51,7 @@ async def init_db() -> None:
         # Idempotent column additions for databases created before these columns existed.
         for stmt in (
             "ALTER TABLE repos ADD COLUMN IF NOT EXISTS account_id VARCHAR(40) REFERENCES accounts(id) ON DELETE CASCADE",
+            "CREATE INDEX IF NOT EXISTS ix_repos_account_id ON repos (account_id)",
             "ALTER TABLE llm_usage ADD COLUMN IF NOT EXISTS account_id VARCHAR(40)",
             "CREATE INDEX IF NOT EXISTS ix_llm_usage_account_id ON llm_usage (account_id)",
             "ALTER TABLE tickets ADD COLUMN IF NOT EXISTS channel VARCHAR(20) NOT NULL DEFAULT 'web'",
