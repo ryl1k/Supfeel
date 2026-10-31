@@ -67,3 +67,17 @@ Append one entry per sprint (newest at the bottom).
 **Spend**: $0 (mock mode)
 
 **Next**: Sprint 4: deployment configs (Vercel + Railway + Neon), README, demo script.
+
+## Sprint 4: Deploy prep + polish (2026-10-31)
+
+**Done**
+- `backend/Dockerfile` (uv, slim; ~145 MB RAM at runtime), `.dockerignore`, `railway.json` (healthcheck `/api/health`)
+- `app.boot`: creates the schema + pgvector extension, seeds only an empty DB, ingests the KB idempotently
+- Neon URL normalization for asyncpg (`sslmode`/`channel_binding` stripped, SSL on), `CORS_ORIGIN_REGEX` for Vercel previews
+- `frontend/vercel.json`; `docs/project/deployment.md` step by step; verified the container locally against a fresh DB
+- GitHub Actions CI; rule-brain routing fixes (membership cancel, address change, switching to a refund mid-proposal); 51 tests
+- `docs/project/demo-script.md`, final README
+
+**Spend**: Claude $0.067 (second live smoke run). Cumulative $0.135 / $90, OpenAI $0.0001 / $5
+
+**Not done (needs the user)**: the real deploy (accounts/logins for Neon, Railway, Vercel), a `devrelay login` to fetch the hackathon rules.
