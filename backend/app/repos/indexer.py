@@ -31,8 +31,10 @@ _tasks: set[asyncio.Task] = set()
 
 
 def repo_id_for(full_name: str, src: str = "github") -> str:
-    owner_name = full_name.strip().strip("/").lower().replace("/", "__")
-    return owner_name if src == "github" else f"local__{owner_name}"
+    name = full_name.strip().strip("/").lower()
+    if src == "github":
+        return name.replace("/", "__")
+    return "local__" + name.removeprefix("local/").replace("/", "__")
 
 
 def _sha(text: str) -> str:

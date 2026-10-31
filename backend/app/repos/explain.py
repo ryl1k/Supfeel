@@ -109,7 +109,7 @@ def rules_overview(
 ) -> str:
     readme = next((files[p] for p in files if p.lower() == "readme.md"), "")
     langs = Counter(PurePosixPath(p).suffix for p in files if PurePosixPath(p).suffix)
-    out = ["## What it is", readme[:1500].strip() or f"`{full_name}` (no README found).", "", "## Modules"]
+    out = ["## What it is", readme or f"`{full_name}` (no README found).", "", "## Modules"]
     for m in modules[:25]:
         first = next((ln for ln in summaries.get(m.key, "").splitlines()[1:2]), "")
         out.append(f"- `{m.key}`: {first}")

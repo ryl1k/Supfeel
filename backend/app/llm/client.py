@@ -140,6 +140,7 @@ async def complete_json(
     session_cap: float | None = None,
 ) -> T:
     """Single structured-output call. `effort=None` disables thinking (cheapest)."""
+    _check_mode()  # fail fast (no span) in mock mode
     async with trace.span(f"claude.{node}", kind="llm", node=node) as sp:
         result = await _complete_json(
             sp, node, system, user, schema, max_tokens, conversation_id, effort, session_cap

@@ -71,7 +71,7 @@ async def context_node(state: TicketState) -> dict[str, Any]:
     if state.get("history"):
         query = f"{state['history'][-1]['content'][:300]}\n{query}"
     ctx = await ctxmod.gather(state["repo_id"], query)
-    files = list(dict.fromkeys(h["path"] for h in ctx["hits"]))[:4]
+    files = list(dict.fromkeys(h["path"] for h in ctx["hits"] if h["kind"] in ("code", "doc")))[:4]
     detail = f"Found {len(ctx['hits'])} relevant excerpts" + (f" in {', '.join(files)}" if files else "")
     if ctx["tickets"]:
         detail += f" · {len(ctx['tickets'])} similar past ticket(s)"
