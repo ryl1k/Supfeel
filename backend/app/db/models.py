@@ -208,7 +208,7 @@ class Conversation(Base):
     id: Mapped[str] = mapped_column(String(60), primary_key=True)
     customer_id: Mapped[str] = mapped_column(ForeignKey("customers.id"))
     status: Mapped[str] = mapped_column(
-        String(20), default="open"
+        String(32), default="open"
     )  # open | awaiting_confirmation | resolved | escalated
     state: Mapped[dict[str, Any]] = mapped_column(default=dict)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)

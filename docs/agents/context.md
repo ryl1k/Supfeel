@@ -1,12 +1,12 @@
 # Agent context: current state
 
-_Last updated: 2026-10-31, end of Sprint 1._
+_Last updated: 2026-10-31, end of Sprint 2._
 
 ## Where we are
 
-- Sprint 0 (foundation) and Sprint 1 (backend core) are **done**.
-- Backend: FastAPI + Postgres/pgvector + tools + RAG + budget-guarded LLM client, with 30 tests passing.
-- Not built yet: the agent graph and chat API (Sprint 2) and the frontend (Sprint 3).
+- Sprints 0–2 are **done**: the backend is feature-complete (agent + SSE chat API), with 41 tests passing.
+- Live Claude path verified (≈ $0.017 per turn). Total spend so far: $0.07.
+- Not built yet: the frontend (Sprint 3), and deployment (Sprint 4).
 - Active branch: `dev`. `main` is updated at each sprint end.
 
 ## Run locally
@@ -18,6 +18,7 @@ uv run python -m app.db.seed               # tables + demo data
 uv run python -m app.rag.ingest            # embed knowledge base (mock hash in LLM_MODE=mock)
 uv run uvicorn app.main:app --reload       # http://localhost:8000/api/health
 uv run pytest                              # uses DB supfeel_test
+LLM_MODE=live uv run python -m scripts.live_smoke   # real Claude end to end (~$0.07, then cached)
 ```
 
 ## What exists
@@ -36,9 +37,9 @@ uv run pytest                              # uses DB supfeel_test
 | `docker-compose.yml` | Local pgvector Postgres (port 5433) |
 | `.env` (untracked) | Has `ANTHROPIC_API_KEY`, `OPENAI_API_KEY` |
 
-## Next up: Sprint 2 (agent)
+## Next up: Sprint 3 (frontend)
 
-Build the LangGraph graph in `backend/app/agent/` per `docs/features/resolution-agent/`. Mock mode must work with no API calls (rule brain).
+Next.js app in `frontend/` per `docs/features/landing-page/` and `docs/features/chat-experience/`. The event contract is in `docs/features/resolution-agent/data-model.md`. Run the backend with `LLM_MODE=mock` while building UI.
 
 ## Key decisions
 
@@ -49,5 +50,5 @@ Build the LangGraph graph in `backend/app/agent/` per `docs/features/resolution-
 
 ## Open questions
 
-- Hackathon name, rules and judging criteria are unknown. Ask the user before tailoring the pitch.
+- Hackathon name, rules and judging criteria are unknown. The event is MLH-affiliated, so once the user runs `devrelay login`, use the DevRelay MCP (`get_mlh_event`) to fetch them.
 - Railway trial credit ($5, 30 days) must last until the demo. Fallback is Render/HF Spaces.

@@ -1,6 +1,6 @@
 # Resolution agent
 
-> Status: **planned**. Paths below are the agreed target layout; no code yet. Update when implemented.
+> Status: **done** (Sprint 2). Paths below are real; keep them in sync with the code.
 
 The core of Supfeel: a LangGraph state machine that takes a customer message and moves it through
 **understand → investigate → retrieve_policy → plan → act → verify → respond**.

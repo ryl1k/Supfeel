@@ -1,21 +1,19 @@
 # Backend structure
 
-> Status: **planned**. Paths below are the agreed target layout; no code yet. Update when implemented.
+> Status: **done** (Sprint 2). Paths below are real; keep them in sync with the code.
 
 ```
 backend/app/agent/
-  graph.py            build_graph(): wires nodes + conditional edges, Postgres checkpointer
-  state.py            AgentState (TypedDict): messages, customer_id, intent, entities, facts,
-                      policy_refs, plan, actions_done, verification, step_count, cost_usd
-  events.py           typed SSE events: token, step, action_proposed, action_done, verified, error
-  nodes/
-    understand.py     LLM → Intent (pydantic, structured output)
-    investigate.py    intent → deterministic read-tool calls
-    retrieve_policy.py  rag.retrieve(query, k=5)
-    plan.py           LLM → Plan[Action] with needs_confirmation
-    act.py            executes actions; LangGraph interrupt() for confirmations
-    verify.py         per-action read-back checks (registry of verifiers)
-    respond.py        LLM streaming summary
-  prompts/            system prompts as .md files (frozen → cacheable)
+  graph.py      7 nodes + routers; GRAPH = build_graph() (no checkpointer, see gotchas)
+  service.py    handle_message / handle_confirm / transcript: persistence, yes/no routing, SSE events
+  brain.py      understand / plan / respond: Claude via app.llm.client, auto-fallback to rules
+  rules.py      deterministic rule brain (mock mode + fallback); covers all demo scenarios
+  prompts.py    one frozen SYSTEM prompt shared by all nodes (cacheable) + per-job instructions
+  authority.py  code-enforced confirmation/escalation rules + action titles/descriptions
+  facts.py      deterministic investigation + derived policy flags
+  schemas.py    Intent, Plan, PlannedAction (structured output models)
+  state.py      AgentState, ActionRecord, Outcome
+  events.py     emit()/step() via LangGraph custom stream writer
 ```
-Limits: `MAX_STEPS=8`, `MAX_REPLANS=2` (in `graph.py`).
+LLM calls per resolved issue: understand (thinking off), plan (adaptive thinking, effort low),
+respond (streamed, thinking off).

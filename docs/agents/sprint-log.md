@@ -36,3 +36,21 @@ Append one entry per sprint (newest at the bottom).
 - Recommendations: local taste ranking ("velora-taste"). Qloo is not wired yet, so the UI must not claim "powered by Qloo"
 
 **Next**: Sprint 2: LangGraph agent + SSE chat API.
+
+## Sprint 2: Agent (2026-10-31)
+
+**Done**
+- LangGraph resolution agent (`backend/app/agent/`): understand → investigate → policy → plan → act → verify → respond
+- Two brains: Claude (structured outputs, cached system prompt) and a deterministic rule brain (mock mode + automatic fallback on API error / refusal / budget cap)
+- Code-enforced authority: confirmations, $200 escalation limit, arg validation
+- Confirmation flow persisted in `conversations.state`; typed "yes"/"no" also works
+- Verification failures automatically hand off to a human (`escalate_to_human`)
+- SSE API: `POST /api/chat`, `POST /api/chat/confirm`, `GET /api/conversations/{id}`
+- 10 scenario tests covering all 6 personas + decline, human, policy Q&A, error; 41 backend tests total
+- `scripts/live_smoke.py`: verified the real Claude path end to end
+
+**Spend**: Claude $0.068, OpenAI $0.0001 (cumulative $0.07 of $90)
+
+**Tooling**: DevRelay MCP (MLH + DEV) installed for Claude Code at the user's request. It needs `devrelay login` + a restart. Use it to find the event's rules, judging criteria and sponsor tracks.
+
+**Next**: Sprint 3: Next.js frontend (landing + chat).

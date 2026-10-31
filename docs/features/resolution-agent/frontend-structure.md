@@ -1,6 +1,6 @@
 # Frontend structure
 
-> Status: **planned**. Paths below are the agreed target layout; no code yet. Update when implemented.
+> Status: **done** (Sprint 2). Paths below are real; keep them in sync with the code.
 
 The agent has no UI of its own. The frontend consumes its SSE events in `frontend/lib/sse.ts` and
 renders them in `frontend/components/chat/` (see `docs/features/chat-experience/`).
