@@ -277,6 +277,189 @@ class EmbeddingCache(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
 
+# --------------------------------------------------------------------------- repositories (code support)
+
+
+class Repo(Base):
+    __tablename__ = "repos"
+    id: Mapped[str] = mapped_column(String(120), primary_key=True)  # "owner__name" (or "local__name")
+    full_name: Mapped[str] = mapped_column(String(200))  # owner/name
+    source: Mapped[str] = mapped_column(String(20), default="github")  # github | local
+    local_path: Mapped[str | None] = mapped_column(Text, nullable=True)
+    default_branch: Mapped[str] = mapped_column(String(120), default="main")
+    head_sha: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    installation_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    status: Mapped[str] = mapped_column(String(20), default="pending")  # pending | indexing | ready | failed
+    error: Mapped[str | None] = mapped_column(Text, nullable=True)
+    overview: Mapped[str] = mapped_column(Text, default="")  # markdown "explain everything" page
+    stats: Mapped[dict[str, Any]] = mapped_column(default=dict)  # languages, file/chunk counts, cost
+    settings: Mapped[dict[str, Any]] = mapped_column(default=dict)  # api_base_url, api_token, api_spec_url
+    indexed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class RepoFile(Base):
+    __tablename__ = "repo_files"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    repo_id: Mapped[str] = mapped_column(ForeignKey("repos.id", ondelete="CASCADE"), index=True)
+    path: Mapped[str] = mapped_column(Text)
+    language: Mapped[str] = mapped_column(String(30))
+    size: Mapped[int] = mapped_column(Integer)
+    content_hash: Mapped[str] = mapped_column(String(64))
+    content: Mapped[str] = mapped_column(Text)
+    outline: Mapped[list[Any]] = mapped_column(default=list)  # [{"symbol", "kind", "line"}]
+
+
+class RepoDoc(Base):
+    """Generated explanations: one repo overview plus one summary per module (directory)."""
+
+    __tablename__ = "repo_docs"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    repo_id: Mapped[str] = mapped_column(ForeignKey("repos.id", ondelete="CASCADE"), index=True)
+    kind: Mapped[str] = mapped_column(String(20))  # overview | module
+    key: Mapped[str] = mapped_column(Text)  # module path ("." for overview)
+    title: Mapped[str] = mapped_column(String(200))
+    body: Mapped[str] = mapped_column(Text)
+    input_hash: Mapped[str] = mapped_column(String(64))  # skip regeneration when inputs are unchanged
+    generated_by: Mapped[str] = mapped_column(String(20), default="rules")  # llm | rules
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, onupdate=utcnow)
+
+
+class RepoChunk(Base):
+    __tablename__ = "repo_chunks"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    repo_id: Mapped[str] = mapped_column(ForeignKey("repos.id", ondelete="CASCADE"), index=True)
+    kind: Mapped[str] = mapped_column(String(20))  # code | doc | summary | api | ticket
+    path: Mapped[str] = mapped_column(Text)
+    symbol: Mapped[str] = mapped_column(String(200), default="")
+    start_line: Mapped[int] = mapped_column(Integer, default=0)
+    end_line: Mapped[int] = mapped_column(Integer, default=0)
+    text: Mapped[str] = mapped_column(Text)
+    content_hash: Mapped[str] = mapped_column(String(64), index=True)
+    embedding_model: Mapped[str] = mapped_column(String(60), index=True)
+    embedding: Mapped[list[float]] = mapped_column(Vector(EMBEDDING_DIM))
+
+
+class ApiOperation(Base):
+    """Business API operations discovered from an OpenAPI spec; the 'assisted action' toolset."""
+
+    __tablename__ = "api_operations"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    repo_id: Mapped[str] = mapped_column(ForeignKey("repos.id", ondelete="CASCADE"), index=True)
+    operation_id: Mapped[str] = mapped_column(String(200))
+    method: Mapped[str] = mapped_column(String(10))
+    path: Mapped[str] = mapped_column(Text)
+    summary: Mapped[str] = mapped_column(Text, default="")
+    parameters: Mapped[list[Any]] = mapped_column(default=list)  # [{"name", "in", "required", "schema"}]
+    body_schema: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
+    source: Mapped[str] = mapped_column(String(200), default="")  # spec file path or URL
+
+
+class IndexJob(Base):
+    __tablename__ = "index_jobs"
+    id: Mapped[str] = mapped_column(String(40), primary_key=True)
+    repo_id: Mapped[str] = mapped_column(ForeignKey("repos.id", ondelete="CASCADE"), index=True)
+    kind: Mapped[str] = mapped_column(String(20))  # full | incremental
+    trigger: Mapped[str] = mapped_column(String(20), default="manual")  # manual | import | push
+    status: Mapped[str] = mapped_column(String(20), default="queued")  # queued | running | done | failed
+    commit_sha: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    progress: Mapped[dict[str, Any]] = mapped_column(default=dict)
+    error: Mapped[str | None] = mapped_column(Text, nullable=True)
+    started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
+# --------------------------------------------------------------------------- tickets
+
+
+class Ticket(Base):
+    __tablename__ = "tickets"
+    id: Mapped[str] = mapped_column(String(20), primary_key=True)  # T-xxxxxx
+    repo_id: Mapped[str] = mapped_column(ForeignKey("repos.id", ondelete="CASCADE"), index=True)
+    customer: Mapped[dict[str, Any]] = mapped_column(
+        default=dict
+    )  # name, email, ref (id in the business system)
+    subject: Mapped[str] = mapped_column(String(200), default="")
+    category: Mapped[str | None] = mapped_column(String(30), nullable=True)
+    # bug | misunderstanding | assisted_action | feature_request | other
+    confidence: Mapped[float | None] = mapped_column(Numeric(4, 3), nullable=True)
+    status: Mapped[str] = mapped_column(String(30), default="open")
+    # open | answered | awaiting_confirmation | fix_in_review | resolved | escalated | failed
+    triage: Mapped[dict[str, Any]] = mapped_column(default=dict)
+    resolution: Mapped[dict[str, Any]] = mapped_column(
+        default=dict
+    )  # what happened, for the dashboard + learning
+    fix: Mapped[dict[str, Any]] = mapped_column(default=dict)  # branch, pr_number, pr_url, ci, files
+    state: Mapped[dict[str, Any]] = mapped_column(default=dict)  # pending confirmation etc.
+    learned: Mapped[bool] = mapped_column(Boolean, default=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, onupdate=utcnow)
+
+
+class TicketMessage(Base):
+    __tablename__ = "ticket_messages"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    ticket_id: Mapped[str] = mapped_column(ForeignKey("tickets.id", ondelete="CASCADE"), index=True)
+    role: Mapped[str] = mapped_column(String(20))  # customer | agent | system
+    content: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class TicketAction(Base):
+    """An API call made (or proposed) on the customer's behalf."""
+
+    __tablename__ = "ticket_actions"
+    id: Mapped[str] = mapped_column(String(40), primary_key=True)
+    ticket_id: Mapped[str] = mapped_column(ForeignKey("tickets.id", ondelete="CASCADE"), index=True)
+    operation_id: Mapped[str] = mapped_column(String(200))
+    method: Mapped[str] = mapped_column(String(10))
+    path: Mapped[str] = mapped_column(Text)
+    args: Mapped[dict[str, Any]] = mapped_column(default=dict)
+    title: Mapped[str] = mapped_column(String(200), default="")
+    status: Mapped[str] = mapped_column(String(20))  # proposed | approved | declined | done | failed
+    needs_confirmation: Mapped[bool] = mapped_column(Boolean, default=True)
+    response: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
+    verification: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class Notification(Base):
+    """Business-facing notifications (bug found, PR opened, CI result). Also mirrored to Slack/Discord."""
+
+    __tablename__ = "notifications"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    repo_id: Mapped[str] = mapped_column(ForeignKey("repos.id", ondelete="CASCADE"), index=True)
+    ticket_id: Mapped[str | None] = mapped_column(String(20), nullable=True, index=True)
+    kind: Mapped[str] = mapped_column(
+        String(40)
+    )  # bug_reported | pr_opened | ci_passed | ci_failed | escalation …
+    title: Mapped[str] = mapped_column(String(300))
+    body: Mapped[str] = mapped_column(Text, default="")
+    url: Mapped[str | None] = mapped_column(Text, nullable=True)
+    delivered: Mapped[list[Any]] = mapped_column(default=list)  # ["slack", "discord"]
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+# --------------------------------------------------------------------------- observability
+
+
+class Span(Base):
+    """One unit of work in a trace (a ticket run, an index job). Nested through parent_id."""
+
+    __tablename__ = "spans"
+    id: Mapped[str] = mapped_column(String(32), primary_key=True)
+    trace_id: Mapped[str] = mapped_column(String(60), index=True)
+    parent_id: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    name: Mapped[str] = mapped_column(String(120))
+    kind: Mapped[str] = mapped_column(String(20))  # run | step | llm | embedding | tool | retrieval | http
+    status: Mapped[str] = mapped_column(String(10), default="ok")  # ok | error
+    attributes: Mapped[dict[str, Any]] = mapped_column(default=dict)
+    cost_usd: Mapped[Decimal] = mapped_column(Numeric(12, 6), default=Decimal(0))
+    started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    ended_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    duration_ms: Mapped[int] = mapped_column(Integer, default=0)
+
+
 BUSINESS_TABLES = [
     "escalations",
     "store_credits",

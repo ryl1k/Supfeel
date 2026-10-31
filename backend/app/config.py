@@ -35,9 +35,54 @@ class Settings(BaseSettings):
     knowledge_base_dir: Path = REPO_ROOT / "knowledge-base"
     qloo_api_key: str = ""
 
+    # GitHub App (preferred) or a personal access token fallback. See docs/project/github-app-setup.md.
+    github_app_id: str = ""
+    github_app_slug: str = ""
+    github_app_private_key: str = ""
+    github_app_private_key_path: str = ""
+    github_webhook_secret: str = ""
+    github_token: str = ""
+    github_api_url: str = "https://api.github.com"
+
+    # Business notifications (optional; always stored in the dashboard inbox too).
+    slack_webhook_url: str = ""
+    discord_webhook_url: str = ""
+    public_app_url: str = "http://localhost:3000"
+
+    # Repository indexing limits (protect the budget and the 512 MB free instance).
+    repo_max_files: int = 2000
+    repo_max_file_bytes: int = 200_000
+    repo_max_total_bytes: int = 25_000_000
+    repo_max_modules_summarized: int = 30
+    max_repos: int = 20
+    index_cap_usd: float = 2.0  # Claude spend per index job (module summaries + overview)
+    allow_local_repos: bool = False  # dev/tests: import a local directory instead of GitHub
+    # The Slice demo store API (examples/slice-pizza) is mounted at /demo-store so assisted actions have a
+    # live business API on the same free instance.
+    mount_demo_store: bool = True
+    demo_store_dir: Path = REPO_ROOT / "examples" / "slice-pizza"
+    # Per-ticket Claude cap. Fixes run a multi-turn tool loop, so they get more headroom than a chat turn.
+    ticket_cap_usd: float = 0.40
+    fix_cap_usd: float = 1.50
+    fix_max_turns: int = 16
+    # Allow anyone to import repositories (otherwise the x-admin-token header is required).
+    open_import: bool = False
+
     @property
     def cors_origin_list(self) -> list[str]:
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]
+
+    @property
+    def github_private_key(self) -> str:
+        if self.github_app_private_key:
+            return self.github_app_private_key.replace("\\n", "\n").strip()
+        if self.github_app_private_key_path:
+            return Path(self.github_app_private_key_path).expanduser().read_text().strip()
+        return ""
+
+    @property
+    def github_app_configured(self) -> bool:
+        return bool(self.github_app_id and (self.github_app_private_key or self.github_app_private_key_path))
 
     @property
     def async_database_url(self) -> str:

@@ -48,6 +48,12 @@ async def init_db() -> None:
                 "ON kb_chunks USING hnsw (embedding vector_cosine_ops)"
             )
         )
+        await conn.execute(
+            text(
+                "CREATE INDEX IF NOT EXISTS repo_chunks_embedding_hnsw "
+                "ON repo_chunks USING hnsw (embedding vector_cosine_ops)"
+            )
+        )
 
 
 def _ago(now: datetime, days: float | None) -> datetime | None:
