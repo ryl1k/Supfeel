@@ -483,14 +483,11 @@ def respond(state: dict[str, Any]) -> str:
 
     if outcome == "awaiting_confirmation":
         pending = [a for a in actions if a.get("needs_confirmation") and a.get("status") == "proposed"]
-        lines = [
-            f"Thanks, {name}. I checked your account. {plan_.get('rationale', '')}".strip(),
-            "",
-            "Here's what I can do right now:",
-        ]
-        lines += [f"- **{a['title']}**: {a['description']}" for a in pending]
-        lines += ["", "Shall I go ahead?"]
-        return "\n".join(lines)
+        plan_titles = " and ".join(f"**{a['title']}**" for a in pending)
+        return (
+            f"Thanks, {name}. I checked your account. {plan_.get('rationale', '')}\n\n"
+            f"Here's my plan: {plan_titles}. Approve it below and I'll take care of everything."
+        )
 
     if outcome == "declined":
         return "No problem, I haven't changed anything. Is there another way I can help?"
