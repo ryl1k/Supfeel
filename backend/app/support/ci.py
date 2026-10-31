@@ -16,6 +16,7 @@ from app.db.models import Repo, Ticket, TicketMessage
 from app.db.session import session_scope
 from app.obs import trace
 from app.repos.github import GitHubError, client_for
+from app.support import callbacks
 from app.support.notify import notify
 
 log = logging.getLogger(__name__)
@@ -87,6 +88,8 @@ async def refresh(ticket_id: str) -> str | None:
     async with session_scope() as s:
         row = await s.get(Ticket, ticket_id)
         row.fix, row.status = fix, status
+    if status != t.status:
+        await callbacks.fire(ticket_id, status)
     return ci["state"]
 
 
@@ -188,6 +191,7 @@ async def on_pr_closed(full_name: str, branch: str, merged: bool) -> list[str]:
                             content="Good news: the fix for the problem you reported is now live. Thanks for letting us know!",
                         )
                     )
+                await callbacks.fire(ticket_id, "resolved")
                 await notify(
                     repo.id,
                     "pr_merged",
