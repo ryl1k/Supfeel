@@ -30,7 +30,7 @@ The demo runs against **Velora**, a fictional footwear store with mock orders, s
 | Embeddings | OpenAI `text-embedding-3-small` → pgvector (HNSW) |
 | Backend | Python 3.11, FastAPI, SQLAlchemy (async), SSE |
 | Frontend | Next.js 16, React 19, Tailwind v4 |
-| Hosting (free) | Vercel (web), Railway (API, Docker), Neon (Postgres + pgvector) |
+| Hosting (free) | Vercel (web), Render (API, Docker), Neon (Postgres + pgvector) |
 
 ## Run locally
 

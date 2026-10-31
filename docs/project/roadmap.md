@@ -28,12 +28,12 @@ Each sprint ends with: docs updated (`docs/agents/`), spend logged (`budget.md`)
 - Wire to the backend SSE stream; demo customer picker
 
 ## Sprint 4: Polish and deploy ✅ (code side)
-- Deploy configs: `backend/Dockerfile`, `railway.json`, `frontend/vercel.json`, idempotent `app.boot`; guide in `deployment.md`
+- Deploy configs: `backend/Dockerfile`, `frontend/vercel.json`, idempotent `app.boot`; guide in `deployment.md`
 - Demo reset endpoint + button, 6 seeded demo personas
 - GitHub Actions CI (backend tests on pgvector, frontend lint + build)
 - README, demo script
 
 ## Open / next
-- **Actual deploy**: needs the user's Neon, Railway and Vercel accounts (follow `deployment.md`)
+- **Actual deploy**: needs the user's Neon, Render and Vercel accounts (follow `deployment.md`)
 - Fetch the hackathon rules and judging criteria via the DevRelay MCP and tailor the pitch
 - Optional: Qloo integration (the recommendation provider hook exists), restoring the transcript on page reload

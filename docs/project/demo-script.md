@@ -1,7 +1,7 @@
 # Demo script (≈ 4 minutes)
 
 Before the demo: open `/chat`, press **Reset data**, and check that `/api/health` shows `llm_mode: live`.
-Fallback: if Claude or the network misbehaves, set `LLM_MODE=mock` on Railway. Every scenario below also works with the rule brain.
+Fallback: if Claude or the network misbehaves, set `LLM_MODE=mock` on Render. Open the site ~1 min early (or keep the uptime ping on) so the free instance is awake. Every scenario below also works with the rule brain.
 
 ## 0. Hook (landing page, 20 s)
 "Most AI support bots answer questions. Supfeel **solves problems**: it understands, investigates, acts, and verifies."
@@ -33,6 +33,6 @@ Talking point: *verification reads the database again; it never trusts the tool'
 ## 5. Close (20 s)
 - Safety: actions over $200 go to a human, sensitive actions need approval, and the authority rules are enforced in code, not the prompt.
 - Cost: ≈ $0.02 per resolved conversation with Claude Sonnet + prompt caching; deterministic investigation and verification.
-- Stack: Claude + LangGraph + pgvector (Neon) + FastAPI (Railway) + Next.js (Vercel).
+- Stack: Claude + LangGraph + pgvector (Neon) + FastAPI (Render) + Next.js (Vercel).
 
 Extra personas if there's time: **Jordan** (lost package → express reship), **Priya** (sole separation → warranty replacement), "I want to talk to a real person" (escalation).

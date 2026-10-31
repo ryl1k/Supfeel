@@ -34,7 +34,7 @@ So $45 of operational spend covers more than 1,000 full conversations.
 ## Mandatory controls (implement in Sprint 1)
 
 1. **Central LLM client**. All Claude calls go through one module that:
-   - logs `usage` (input, output, cache read/write tokens) and the computed USD to the `llm_usage` table (persists across Railway redeploys)
+   - logs `usage` (input, output, cache read/write tokens) and the computed USD to the `llm_usage` table (persists across Render redeploys)
    - enforces the global hard cap and a per-session cap (`LLM_SESSION_CAP_USD`)
    - sets a modest `max_tokens` per node (understand 512, plan 1024, respond 768)
    - uses `output_config.effort = "low"` by default; raise it only for `plan` if quality needs it

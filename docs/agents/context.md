@@ -35,14 +35,14 @@ LLM_MODE=live uv run python -m scripts.live_smoke   # real Claude end to end (~$
 | `knowledge-base/` | 8 policy docs + 3 FAQ docs for the fictional store **Velora** |
 | `backend/` | FastAPI app: `app/db`, `app/llm`, `app/tools`, `app/rag`, `app/api` |
 | `frontend/` | Next.js 16 app: `/` landing, `/chat` agent UI |
-| `backend/Dockerfile`, `railway.json`, `frontend/vercel.json` | Deploy configs (see `docs/project/deployment.md`) |
+| `backend/Dockerfile`, `frontend/vercel.json` | Deploy configs (see `docs/project/deployment.md`) |
 | `.github/workflows/ci.yml` | CI: backend tests + frontend build |
 | `docker-compose.yml` | Local pgvector Postgres (port 5433) |
 | `.env` (untracked) | Has `ANTHROPIC_API_KEY`, `OPENAI_API_KEY` |
 
 ## Next up
 
-1. Deploy per `docs/project/deployment.md` (Neon → Railway → Vercel → CORS).
+1. Deploy per `docs/project/deployment.md` (Neon → Render → Vercel → CORS).
 2. After the user runs `devrelay login` and restarts Claude Code: fetch the event's rules, judging criteria and sponsor tracks (DevRelay MCP), then tailor `docs/project/brief.md` and the demo script.
 3. Nice-to-have: restore the transcript on reload, Qloo provider.
 
@@ -50,10 +50,10 @@ LLM_MODE=live uv run python -m scripts.live_smoke   # real Claude end to end (~$
 
 - Demo store: Velora (footwear/apparel). Hero scenario: uncomfortable sneakers → comfort-guarantee exchange with a wide-fit suggestion.
 - Investigate and verify steps are deterministic (no LLM), so there are about 3 LLM calls per resolved issue.
-- Hosting: Vercel (frontend) + Railway (backend) + Neon Postgres with pgvector (data + vectors).
+- Hosting: Vercel (frontend) + Render (backend, Docker) + Neon Postgres with pgvector (data + vectors).
 - Qloo is optional, with a local fallback.
 
 ## Open questions
 
 - Hackathon name, rules and judging criteria are unknown. The event is MLH-affiliated, so once the user runs `devrelay login`, use the DevRelay MCP (`get_mlh_event`) to fetch them.
-- Railway trial credit ($5, 30 days) must last until the demo. Fallback is Render/HF Spaces.
+- Render's free tier sleeps after ~15 min idle (30–60 s cold start). Use a keep-alive ping during judging. Fallbacks: Koyeb, HF Spaces. (Railway was dropped on 2026-10-31: not working for the user.)

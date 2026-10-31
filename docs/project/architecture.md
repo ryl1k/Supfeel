@@ -6,7 +6,7 @@ Status: **proposed** (Sprint 0). Update this file when decisions change.
 
 ```
 ┌──────────────┐   SSE/HTTP   ┌──────────────────────────────────────────────┐
-│  Frontend    │ ───────────▶ │  Backend (FastAPI) on Railway                │
+│  Frontend    │ ───────────▶ │  Backend (FastAPI) on Render                 │
 │  Next.js     │ ◀─────────── │                                              │
 │  (Vercel)    │  stream:     │  LangGraph agent                             │
 └──────────────┘  text +      │   understand → investigate → plan → act      │
@@ -64,11 +64,11 @@ Optional: `get_recommendations` (Qloo when a key is available, otherwise a local
 | Part | Host | Plan / limits that matter |
 |---|---|---|
 | Frontend | **Vercel** Hobby | Free. Static/edge only; no long-running backend work here |
-| Backend | **Railway** (Docker) | Trial: one-time $5 credit for 30 days, then the Free plan at $1/month credit. Enable app sleeping (serverless). Keep the image slim |
+| Backend | **Render** free web service (Docker) | 512 MB RAM (we use ~145 MB), 750 h/month, spins down after ~15 min idle (30–60 s cold start) |
 | Database | **Neon** Free | 0.5 GB storage, 100 CU-hours/month per project, scales to zero after 5 min idle (cold start ~1 s) |
 
-- Railway's credit is the only thing that can run out. Watch usage in the dashboard. If the trial ends before the hackathon, use Render free or HF Spaces (same Dockerfile).
+- Cold starts are the main risk: keep the service warm with a free uptime ping during judging. Fallbacks with the same Dockerfile: Koyeb, HF Spaces.
 - Frontend → backend over HTTPS + SSE; CORS allows the Vercel domain only.
-- Secrets live in Railway/Vercel env vars, never in the repo.
+- Secrets live in Render/Vercel env vars, never in the repo.
 
 See `budget.md` for API spend.
