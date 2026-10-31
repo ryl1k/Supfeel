@@ -284,6 +284,16 @@ async def get_file(repo_id: str, path: str, p: CurrentPrincipal) -> dict:
         return {"path": f.path, "language": f.language, "content": f.content, "outline": f.outline}
 
 
+def _demo(s) -> dict | None:
+    """One-click demo for onboarding: the bundled Slice repo locally, or a public GitHub copy in production."""
+    store = {"api_base_url_path": "/demo-store", "api_token": "demo-service-token", "business_name": "Slice"}
+    if s.demo_github_repo:
+        return {"label": "Slice pizza demo", "repo": s.demo_github_repo, **store}
+    if s.allow_local_repos and s.open_import and s.demo_store_dir.is_dir():
+        return {"label": "Slice pizza demo (bundled)", "local_path": str(s.demo_store_dir), **store}
+    return None
+
+
 @router.get("/github/status")
 async def github_status() -> dict:
     s = get_settings()
@@ -296,4 +306,5 @@ async def github_status() -> dict:
         "webhook_configured": bool(s.github_webhook_secret),
         "open_import": s.open_import,
         "allow_local_repos": s.allow_local_repos,
+        "demo": _demo(s),
     }

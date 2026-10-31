@@ -61,6 +61,7 @@ class Settings(BaseSettings):
     allow_local_repos: bool = False  # dev/tests: import a local directory instead of GitHub
     # The Slice demo store API (examples/slice-pizza) is mounted at /demo-store so assisted actions have a
     # live business API on the same free instance.
+    demo_github_repo: str = ""  # e.g. "ryl1k/slice-pizza": offered as one-click demo during onboarding
     mount_demo_store: bool = True
     demo_store_dir: Path = REPO_ROOT / "examples" / "slice-pizza"
     # Per-ticket Claude cap. Fixes run a multi-turn tool loop, so they get more headroom than a chat turn.

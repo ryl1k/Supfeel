@@ -24,7 +24,7 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
       const res = mode === "signup" ? await api.signup(form) : await api.login({ email: form.email, password: form.password });
       setSessionToken(res.token);
       const next = new URLSearchParams(window.location.search).get("next");
-      router.replace(next && next.startsWith("/") ? next : "/app");
+      router.replace(next && next.startsWith("/") ? next : mode === "signup" ? "/app/welcome" : "/app");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
@@ -40,9 +40,11 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
         </Link>
       </header>
       <div className="flex flex-1 items-start justify-center px-4 pb-16 pt-6 sm:pt-12">
-        <form onSubmit={submit} className="glass w-full max-w-[420px] space-y-4 rounded-[24px] p-6 sm:p-8">
+        <form onSubmit={submit} className="glass anim-scale-in w-full max-w-[420px] space-y-4 rounded-[24px] p-6 sm:p-8">
           <div className="flex flex-col items-center gap-3 text-center">
-            <Gem size={52} />
+            <span className="anim-float">
+              <Gem size={52} />
+            </span>
             <h1 className="text-[24px] font-semibold">{mode === "signup" ? "Create your workspace" : "Welcome back"}</h1>
             <p className="text-[14px] text-text-300">
               {mode === "signup"
