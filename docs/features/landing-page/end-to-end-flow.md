@@ -1,6 +1,6 @@
 # End-to-end flow
 
-> Status: **planned**. Paths below are the agreed target layout; no code yet. Update when implemented.
+> Status: **done** (Sprint 3). Paths below are real; keep them in sync with the code.
 
 1. Visitor lands on `/` → sees hero + chat preview.
 2. "Start chatting" / "Try Supfeel" → `/chat`.

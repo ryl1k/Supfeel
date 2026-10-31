@@ -1,6 +1,6 @@
 {
   "feature": "chat-experience",
-  "status": "planned",
+  "status": "done",
   "routes": [
     {
       "path": "/chat",
@@ -8,13 +8,17 @@
     }
   ],
   "code": [
-    "frontend/components/chat/",
-    "frontend/lib/sse.ts",
+    "frontend/components/chat/ChatApp.tsx",
+    "frontend/components/chat/ActionTrail.tsx",
+    "frontend/components/chat/ActionCards.tsx",
+    "frontend/components/chat/RichText.tsx",
+    "frontend/components/chat/primitives.tsx",
+    "frontend/lib/useChat.ts",
     "frontend/lib/api.ts",
     "frontend/lib/types.ts"
   ],
-  "backend_contract": "backend/app/agent/events.py",
-  "tests": [
-    "frontend/tests/chat/"
+  "backend_contract": "backend/app/agent/events.py (documented in docs/features/resolution-agent/data-model.md)",
+  "env": [
+    "NEXT_PUBLIC_API_URL"
   ]
 }

@@ -1,6 +1,6 @@
 # Per-app responsibility
 
-> Status: **planned**. Paths below are the agreed target layout; no code yet. Update when implemented.
+> Status: **done** (Sprint 3). Paths below are real; keep them in sync with the code.
 
 | App | Responsibility |
 |---|---|
