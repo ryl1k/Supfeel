@@ -66,12 +66,25 @@ def rules_triage(message: str) -> Triage:
     )
 
 
+def handoff_block(handoff: dict[str, Any] | None) -> str:
+    if not handoff:
+        return ""
+    return (
+        f"\nEscalated by a first-line support agent ({handoff.get('agent') or 'unknown'}). "
+        f"It already tried: {handoff.get('attempted') or 'not stated'}. Do not repeat its answers.\n"
+    )
+
+
 async def triage(
-    message: str, history: list[dict[str, str]], ctx: dict[str, Any], ticket_id: str
+    message: str,
+    history: list[dict[str, str]],
+    ctx: dict[str, Any],
+    ticket_id: str,
+    handoff: dict[str, Any] | None = None,
 ) -> tuple[Triage, str]:
     convo = "\n".join(f"{m['role']}: {m['content']}" for m in history[-6:])
     user = (
-        f"Earlier in this ticket:\n{convo or '(new ticket)'}\n\n"
+        f"{handoff_block(handoff)}Earlier in this ticket:\n{convo or '(new ticket)'}\n\n"
         f"Customer message:\n<message>\n{message}\n</message>\n\n"
         f"Codebase and docs:\n{ctxmod.hits_block(ctx, 1200)}\n\n"
         f"Similar past tickets:\n{ctxmod.tickets_block(ctx)}\n\n"

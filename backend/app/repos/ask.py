@@ -4,6 +4,7 @@ import uuid
 
 from pydantic import BaseModel, Field
 
+from app.accounts.context import current_account
 from app.llm.client import BudgetExceeded, LlmUnavailable, complete_json
 from app.obs import trace
 from app.repos.search import Hit, search
@@ -39,8 +40,9 @@ def rules_answer(question: str, hits: list[Hit]) -> Answer:
     return Answer(answer="\n".join(lines), citations=[h.cite() for h in hits[:5]], confidence=0.3)
 
 
-async def ask(repo_id: str, question: str) -> dict:
+async def ask(repo_id: str, question: str, account_id: str | None = None) -> dict:
     trace_id = "ask_" + uuid.uuid4().hex[:12]
+    current_account.set(account_id)
     async with trace.span("ask repository", kind="run", trace_id=trace_id, question=question[:500]) as sp:
         hits = await search(repo_id, question, k=8)
         brain = "llm"

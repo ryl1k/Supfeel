@@ -11,6 +11,7 @@ from typing import Any
 from langgraph.graph import END, START, StateGraph
 from sqlalchemy import select
 
+from app.accounts import billing
 from app.agent.events import emit, step
 from app.config import get_settings
 from app.db.models import ApiOperation, Repo
@@ -21,7 +22,7 @@ from app.support import assist, ci, fixer
 from app.support import context as ctxmod
 from app.support.notify import notify
 from app.support.state import TicketState
-from app.support.triage import triage
+from app.support.triage import handoff_block, triage
 
 ROUTES = {
     "bug": "fix",
@@ -82,7 +83,9 @@ async def context_node(state: TicketState) -> dict[str, Any]:
 @traced("triage")
 async def triage_node(state: TicketState) -> dict[str, Any]:
     step("triage", "running", "Working out what kind of problem this is")
-    t, used = await triage(state["message"], state.get("history", []), state["ctx"], state["ticket_id"])
+    t, used = await triage(
+        state["message"], state.get("history", []), state["ctx"], state["ticket_id"], state.get("handoff")
+    )
     route = "ask" if t.needs_clarification and t.clarifying_question else ROUTES[t.category]
     if route != "ask" and t.search_queries and used == "llm":
         extra = await ctxmod.gather(state["repo_id"], state["message"], t.search_queries)
@@ -293,7 +296,20 @@ async def fix_node(state: TicketState) -> dict[str, Any]:
     t = state["triage"]
     convo = "\n".join(f"{m['role']}: {m['content']}" for m in state.get("history", [])[-4:])
     report = f"Ticket {state['ticket_id']}: {t['subject']}\nCustomer: {state['message']}\n{convo}\nSuspected cause: {t.get('bug_hypothesis') or 'unknown'}"
-    result = await fixer.investigate(repo.id, state["ticket_id"], report)
+    account = state.get("account_id")
+    try:
+        await billing.charge(
+            account, "fix", repo_id=repo.id, ref=state["ticket_id"], note=f"Fix run for {state['ticket_id']}"
+        )
+        result = await fixer.investigate(repo.id, state["ticket_id"], report)
+        if result.decision == "report":  # Claude unavailable: no real fix run happened
+            await billing.refund(
+                account, "fix", state["ticket_id"], f"Fix run for {state['ticket_id']} not performed"
+            )
+    except billing.PaymentRequired as e:
+        step("fix", "running", f"Automatic fix skipped: {e}")
+        result = await fixer.report_only(repo.id, report)
+        result.explanation = f"Automatic fix skipped ({e})"
     url = _ticket_url(state["ticket_id"])
 
     if result.decision == "not_a_bug":
@@ -433,7 +449,7 @@ def rules_reply(state: TicketState) -> str:
 async def respond_node(state: TicketState) -> dict[str, Any]:
     step("respond", "running", "Writing reply")
     user = (
-        f"Business: {state.get('business') or 'the product'}\n"
+        f"Business: {state.get('business') or 'the product'}\n{handoff_block(state.get('handoff'))}"
         f"Conversation so far:\n" + "\n".join(f"{m['role']}: {m['content']}" for m in state.get("history", [])[-6:]) +
         f"\n\nCustomer's latest message:\n<message>\n{state.get('message', '')}\n</message>\n\n"
         f"What happened (internal):\n{json.dumps(_facts(state), default=str)[:6000]}\n\n"

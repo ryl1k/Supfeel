@@ -1,10 +1,12 @@
 import re
 from pathlib import Path
 
-from fastapi import APIRouter, Depends, Header, HTTPException
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 from sqlalchemy import func, select
 
+from app.accounts import billing
+from app.accounts.auth import CurrentPrincipal, repo_for
 from app.config import get_settings
 from app.db.models import ApiOperation, IndexJob, Repo, RepoDoc, RepoFile
 from app.db.session import session_scope
@@ -17,17 +19,6 @@ from app.repos.search import search
 router = APIRouter(prefix="/api")
 _GITHUB_URL = re.compile(r"^(?:https?://github\.com/|git@github\.com:)?([\w.-]+)/([\w.-]+?)(?:\.git)?/?$")
 SECRET_SETTINGS = ("api_token",)
-
-
-def require_import_rights(x_admin_token: str = Header(default="")) -> None:
-    settings = get_settings()
-    if not settings.open_import and x_admin_token != settings.admin_token:
-        raise HTTPException(status_code=401, detail="admin token required")
-
-
-def require_admin(x_admin_token: str = Header(default="")) -> None:
-    if x_admin_token != get_settings().admin_token:
-        raise HTTPException(status_code=401, detail="admin token required")
 
 
 def parse_full_name(value: str) -> str:
@@ -75,13 +66,8 @@ def job_view(j: IndexJob) -> dict:
     }
 
 
-async def _get_repo(repo_id: str) -> Repo:
-    async with session_scope() as s:
-        r = await s.get(Repo, repo_id)
-        if r is None:
-            raise HTTPException(status_code=404, detail="unknown repository")
-        s.expunge(r)
-        return r
+def payment_error(e: billing.PaymentRequired) -> HTTPException:
+    return HTTPException(status_code=402, detail=str(e))
 
 
 class ImportRequest(BaseModel):
@@ -90,15 +76,18 @@ class ImportRequest(BaseModel):
     local_path: str | None = None
 
 
-@router.post("/repos", dependencies=[Depends(require_import_rights)], status_code=201)
-async def import_repo(req: ImportRequest) -> dict:
+@router.post("/repos", status_code=201)
+async def import_repo(req: ImportRequest, p: CurrentPrincipal) -> dict:
     settings = get_settings()
     async with session_scope() as s:
-        if await s.scalar(select(func.count()).select_from(Repo)) >= settings.max_repos:
+        stmt = select(func.count()).select_from(Repo)
+        if not p.is_admin:
+            stmt = stmt.where(Repo.account_id == p.account_id)
+        if await s.scalar(stmt) >= settings.max_repos:
             raise HTTPException(status_code=409, detail=f"repository limit ({settings.max_repos}) reached")
 
     if req.local_path:
-        if not settings.allow_local_repos:
+        if not settings.allow_local_repos or not (p.is_admin or settings.open_import):
             raise HTTPException(status_code=403, detail="local repositories are disabled")
         path = Path(req.local_path).expanduser()
         if not path.is_dir():
@@ -121,12 +110,22 @@ async def import_repo(req: ImportRequest) -> dict:
         raise HTTPException(status_code=422, detail="give repo or local_path")
 
     rid = repo_id_for(full_name, source)
+    if p.account_id:  # one workspace per repository id; local imports are namespaced per workspace
+        rid = rid if source == "github" else f"{rid}__{p.account_id[-6:]}"
+    async with session_scope() as s:
+        repo = await s.get(Repo, rid)
+        if repo is not None and repo.account_id != p.account_id and not p.is_admin:
+            raise HTTPException(status_code=409, detail="this repository is connected to another workspace")
+    try:
+        await billing.charge(p.account_id, "index", repo_id=rid, note=f"Import {full_name}")
+    except billing.PaymentRequired as e:
+        raise payment_error(e) from e
     async with session_scope() as s:
         repo = await s.get(Repo, rid)
         if repo is None:
             s.add(
                 Repo(
-                    id=rid, full_name=full_name, source=source, default_branch=branch, installation_id=installation_id,
+                    id=rid, account_id=p.account_id, full_name=full_name, source=source, default_branch=branch, installation_id=installation_id,
                     local_path=str(Path(req.local_path).expanduser().resolve()) if req.local_path else None,
                 )
             )  # fmt: skip
@@ -135,15 +134,18 @@ async def import_repo(req: ImportRequest) -> dict:
 
 
 @router.get("/repos")
-async def list_repos() -> list[dict]:
+async def list_repos(p: CurrentPrincipal) -> list[dict]:
+    stmt = select(Repo).order_by(Repo.created_at.desc())
+    if not p.is_admin:
+        stmt = stmt.where(Repo.account_id == p.account_id)
     async with session_scope() as s:
-        repos = (await s.scalars(select(Repo).order_by(Repo.created_at.desc()))).all()
+        repos = (await s.scalars(stmt)).all()
         return [repo_view(r) for r in repos]
 
 
 @router.get("/repos/{repo_id}")
-async def get_repo(repo_id: str) -> dict:
-    r = await _get_repo(repo_id)
+async def get_repo(repo_id: str, p: CurrentPrincipal) -> dict:
+    r = await repo_for(p, repo_id)
     async with session_scope() as s:
         job = await s.scalar(
             select(IndexJob).where(IndexJob.repo_id == repo_id).order_by(IndexJob.started_at.desc())
@@ -171,19 +173,18 @@ async def get_repo(repo_id: str) -> dict:
     }
 
 
-@router.delete("/repos/{repo_id}", dependencies=[Depends(require_admin)])
-async def delete_repo(repo_id: str) -> dict:
-    """Removes the repo and everything derived from it (files, chunks, docs, jobs, tickets, notifications)."""
+@router.delete("/repos/{repo_id}")
+async def delete_repo(repo_id: str, p: CurrentPrincipal) -> dict:
+    """Removes the repo and everything derived from it (files, chunks, docs, jobs, tickets, keys, notifications)."""
+    await repo_for(p, repo_id)
     async with session_scope() as s:
-        r = await s.get(Repo, repo_id)
-        if r is None:
-            raise HTTPException(status_code=404, detail="unknown repository")
-        await s.delete(r)
+        await s.delete(await s.get(Repo, repo_id))
     return {"deleted": repo_id}
 
 
 @router.get("/repos/{repo_id}/jobs")
-async def list_jobs(repo_id: str, limit: int = 20) -> list[dict]:
+async def list_jobs(repo_id: str, p: CurrentPrincipal, limit: int = 20) -> list[dict]:
+    await repo_for(p, repo_id)
     async with session_scope() as s:
         jobs = (
             await s.scalars(
@@ -197,13 +198,22 @@ async def list_jobs(repo_id: str, limit: int = 20) -> list[dict]:
 
 
 @router.get("/jobs/{job_id}/trace")
-async def job_trace(job_id: str) -> dict:
+async def job_trace(job_id: str, p: CurrentPrincipal) -> dict:
+    async with session_scope() as s:
+        job = await s.get(IndexJob, job_id)
+    if job is None:
+        raise HTTPException(status_code=404, detail="unknown job")
+    await repo_for(p, job.repo_id)
     return await load_trace(job_id)
 
 
-@router.post("/repos/{repo_id}/reindex", dependencies=[Depends(require_import_rights)])
-async def reindex(repo_id: str) -> dict:
-    await _get_repo(repo_id)
+@router.post("/repos/{repo_id}/reindex")
+async def reindex(repo_id: str, p: CurrentPrincipal) -> dict:
+    repo = await repo_for(p, repo_id)
+    try:
+        await billing.charge(repo.account_id, "index", repo_id=repo_id, note=f"Re-index {repo.full_name}")
+    except billing.PaymentRequired as e:
+        raise payment_error(e) from e
     return {"job_id": await start_job(repo_id, trigger="manual")}
 
 
@@ -215,19 +225,20 @@ class RepoSettings(BaseModel):
     business_name: str | None = None
 
 
-@router.patch("/repos/{repo_id}/settings", dependencies=[Depends(require_admin)])
-async def update_settings(repo_id: str, body: RepoSettings) -> dict:
+@router.patch("/repos/{repo_id}/settings")
+async def update_settings(repo_id: str, body: RepoSettings, p: CurrentPrincipal) -> dict:
+    await repo_for(p, repo_id)
     async with session_scope() as s:
         r = await s.get(Repo, repo_id)
-        if r is None:
-            raise HTTPException(status_code=404, detail="unknown repository")
         r.settings = {**(r.settings or {}), **body.model_dump(exclude_none=True)}
         return public_settings(r.settings)
 
 
 @router.get("/repos/{repo_id}/search")
-async def search_repo(repo_id: str, q: str, k: int = 8, kind: str | None = None) -> list[dict]:
-    await _get_repo(repo_id)
+async def search_repo(
+    repo_id: str, q: str, p: CurrentPrincipal, k: int = 8, kind: str | None = None
+) -> list[dict]:
+    await repo_for(p, repo_id)
     hits = await search(repo_id, q, k=min(k, 25), kinds=(kind,) if kind else None)
     return [h.to_dict() | {"cite": h.cite()} for h in hits]
 
@@ -237,15 +248,20 @@ class AskRequest(BaseModel):
 
 
 @router.post("/repos/{repo_id}/ask")
-async def ask_repo(repo_id: str, body: AskRequest) -> dict:
-    r = await _get_repo(repo_id)
+async def ask_repo(repo_id: str, body: AskRequest, p: CurrentPrincipal) -> dict:
+    r = await repo_for(p, repo_id)
     if r.status not in ("ready", "indexing") or not r.indexed_at:
         raise HTTPException(status_code=409, detail="repository is not indexed yet")
-    return await ask(repo_id, body.question)
+    try:
+        await billing.charge(r.account_id, "ask", repo_id=repo_id)
+    except billing.PaymentRequired as e:
+        raise payment_error(e) from e
+    return await ask(repo_id, body.question, account_id=r.account_id)
 
 
 @router.get("/repos/{repo_id}/files")
-async def list_files(repo_id: str, prefix: str = "") -> list[dict]:
+async def list_files(repo_id: str, p: CurrentPrincipal, prefix: str = "") -> list[dict]:
+    await repo_for(p, repo_id)
     async with session_scope() as s:
         rows = (
             await s.execute(
@@ -259,7 +275,8 @@ async def list_files(repo_id: str, prefix: str = "") -> list[dict]:
 
 
 @router.get("/repos/{repo_id}/file")
-async def get_file(repo_id: str, path: str) -> dict:
+async def get_file(repo_id: str, path: str, p: CurrentPrincipal) -> dict:
+    await repo_for(p, repo_id)
     async with session_scope() as s:
         f = await s.scalar(select(RepoFile).where(RepoFile.repo_id == repo_id, RepoFile.path == path))
         if f is None:

@@ -14,6 +14,9 @@ from typing import Any
 
 from sqlalchemy import select
 
+from app.accounts import billing
+from app.accounts.context import current_account
+from app.config import get_settings
 from app.db.models import Notification, Repo, Ticket, TicketAction, TicketMessage
 from app.db.session import session_scope
 from app.obs import trace
@@ -64,9 +67,8 @@ async def _add_message(ticket_id: str, role: str, content: str) -> None:
 
 
 def _history(messages: list[dict[str, str]]) -> list[dict[str, str]]:
-    return [
-        {"role": m["role"], "content": m["content"]} for m in messages if m["role"] in ("customer", "agent")
-    ][-10:]
+    keep = ("customer", "agent", "frontline")
+    return [{"role": m["role"], "content": m["content"]} for m in messages if m["role"] in keep][-12:]
 
 
 async def learn_ticket(ticket_id: str) -> bool:
@@ -82,6 +84,7 @@ async def learn_ticket(ticket_id: str) -> bool:
 
 async def _drive(ticket: Ticket, initial: dict[str, Any], queue: asyncio.Queue) -> None:
     final: dict[str, Any] = {}
+    current_account.set(initial.get("account_id"))  # bill this turn's AI spend to the workspace
     try:
         async with trace.span(
             f"ticket turn ({initial['mode']})",
@@ -174,34 +177,68 @@ async def _load(ticket_id: str) -> Ticket:
         return t
 
 
-async def _business(repo_id: str) -> str:
+async def _business(repo_id: str) -> tuple[str, str | None]:
+    """(business display name, owning account id)."""
     async with session_scope() as s:
         r = await s.get(Repo, repo_id)
         if r is None:
             raise TicketError("unknown product")
         if r.status not in ("ready", "indexing") or not r.indexed_at:
             raise TicketError("this product is still being set up; try again in a minute")
-        return (r.settings or {}).get("business_name") or r.full_name.split("/")[-1]
+        return (r.settings or {}).get("business_name") or r.full_name.split("/")[-1], r.account_id
 
 
-def _initial(t: Ticket, business: str, message: str, history: list[dict[str, str]]) -> dict[str, Any]:
+def _initial(
+    t: Ticket, business: tuple[str, str | None], message: str, history: list[dict[str, str]]
+) -> dict[str, Any]:
     return {
-        "ticket_id": t.id, "repo_id": t.repo_id, "business": business, "customer": t.customer or {},
-        "mode": "message", "message": message, "history": history, "brain": {}, "notes": [],
+        "ticket_id": t.id, "repo_id": t.repo_id, "business": business[0], "account_id": business[1],
+        "customer": t.customer or {}, "mode": "message", "message": message, "history": history, "brain": {},
+        "notes": [], "handoff": (t.meta or {}).get("handoff"),
     }  # fmt: skip
 
 
-async def create_ticket(
-    repo_id: str, customer: dict[str, Any], message: str
-) -> AsyncIterator[dict[str, Any]]:
+async def open_ticket(
+    repo_id: str,
+    customer: dict[str, Any],
+    message: str,
+    *,
+    channel: str = "web",
+    meta: dict[str, Any] | None = None,
+) -> tuple[Ticket, tuple[str, str | None]]:
+    """Create and bill a ticket; the turn itself is started by the caller."""
     message = message.strip()[:4000]
     business = await _business(repo_id)
-    t = Ticket(id=new_ticket_id(), repo_id=repo_id, customer=_jsonable(customer), status="open")
+    t = Ticket(id=new_ticket_id(), repo_id=repo_id, customer=_jsonable(customer), status="open", channel=channel,
+               meta=_jsonable(meta or {}))  # fmt: skip
+    try:
+        await billing.charge(
+            business[1], "ticket", repo_id=repo_id, ref=t.id, note=f"Ticket {t.id} ({channel})"
+        )
+    except billing.PaymentRequired as e:
+        raise TicketError(str(e)) from e
     async with session_scope() as s:
         s.add(t)
+    for m in ((meta or {}).get("handoff") or {}).get("transcript") or []:
+        role = "customer" if m.get("role") in ("customer", "user") else "frontline"
+        await _add_message(t.id, role, str(m.get("content", ""))[:4000])
     await _add_message(t.id, "customer", message)
+    return t, business
+
+
+async def create_ticket(
+    repo_id: str,
+    customer: dict[str, Any],
+    message: str,
+    *,
+    channel: str = "web",
+    meta: dict[str, Any] | None = None,
+) -> AsyncIterator[dict[str, Any]]:
+    t, business = await open_ticket(repo_id, customer, message, channel=channel, meta=meta)
+    message = message.strip()[:4000]
     yield {"event": "ticket", "data": {"ticket_id": t.id}}
-    async for ev in _stream(t, _initial(t, business, message, [])):
+    history = _history(await _messages(t.id))[:-1]  # the first-line agent's transcript, if any
+    async for ev in _stream(t, _initial(t, business, message, history)):
         yield ev
 
 
@@ -284,6 +321,51 @@ async def _close_answered(t: Ticket, resolved: bool) -> AsyncIterator[dict[str, 
     yield {"event": "done", "data": {"ticket_id": t.id, "status": status}}
 
 
+# ----------------------------------------------------------------------------------------- relay view (for agents)
+
+NEXT_STEP = {
+    "open": "Send the customer's answer with `reply`.",
+    "answered": "Send the reply. If the customer confirms it helped, call `reply` with their message to close the ticket.",
+    "awaiting_confirmation": "Ask the customer the confirmation question, then call `confirm` with their decision.",
+    "fix_in_review": "A code fix is in review and CI is verifying it. Check back with `get_ticket` (or wait for the callback).",
+    "fix_verified": "The fix passed CI and awaits merge by the engineering team. Nothing to do for the customer now.",
+    "fix_failed": "The automatic fix failed CI; engineers were notified. Tell the customer the team is on it.",
+    "reported": "The bug was reported to engineering. Share the reply; nothing else to do.",
+    "resolved": "Resolved. Nothing else to do.",
+    "escalated": "A human teammate was notified and will follow up.",
+}
+
+
+async def relay(ticket_id: str) -> dict[str, Any]:
+    """Compact, agent-friendly view: what to tell the customer and what to do next."""
+    t = await _load(ticket_id)
+    msgs = await _messages(ticket_id)
+    reply = next((m["content"] for m in reversed(msgs) if m["role"] == "agent"), "")
+    pending = (t.state or {}).get("pending_action")
+    fix = t.fix or {}
+    out: dict[str, Any] = {
+        "ticket_id": t.id,
+        "status": t.status,
+        "category": t.category,
+        "customer_reply": reply,
+        "next_step": NEXT_STEP.get(t.status, ""),
+        "trace_url": f"{get_settings().public_app_url.rstrip('/')}/app/tickets/{t.id}",
+    }
+    if pending:
+        out["needs_confirmation"] = {
+            "question": f"Shall we {pending.get('title', 'do this').rstrip('.')}? (yes/no)",
+            "action": pending.get("title"),
+            "details": pending.get("args"),
+        }
+    if fix.get("decision"):
+        out["engineering"] = {
+            k: fix.get(k) for k in ("decision", "root_cause", "pr_url", "workaround") if fix.get(k)
+        }
+        if fix.get("ci"):
+            out["engineering"]["ci"] = (fix.get("ci") or {}).get("state")
+    return out
+
+
 # ----------------------------------------------------------------------------------------- views
 
 
@@ -292,7 +374,7 @@ def ticket_summary(t: Ticket) -> dict[str, Any]:
     return {
         "id": t.id, "repo_id": t.repo_id, "subject": t.subject, "category": t.category,
         "confidence": float(t.confidence) if t.confidence is not None else None, "status": t.status,
-        "customer": t.customer, "pr_url": fix.get("pr_url"), "ci": (fix.get("ci") or {}).get("state"),
+        "customer": t.customer, "channel": t.channel, "pr_url": fix.get("pr_url"), "ci": (fix.get("ci") or {}).get("state"),
         "learned": t.learned, "created_at": t.created_at.isoformat(), "updated_at": t.updated_at.isoformat(),
     }  # fmt: skip
 
@@ -332,20 +414,21 @@ def notification_view(n: Notification) -> dict[str, Any]:
 
 
 async def list_tickets(
-    repo_id: str | None = None, status: str | None = None, limit: int = 100
+    repo_ids: list[str] | None = None, status: str | None = None, limit: int = 100
 ) -> list[dict[str, Any]]:
+    """`repo_ids=None` lists every repository (operator)."""
     stmt = select(Ticket).order_by(Ticket.created_at.desc()).limit(limit)
-    if repo_id:
-        stmt = stmt.where(Ticket.repo_id == repo_id)
+    if repo_ids is not None:
+        stmt = stmt.where(Ticket.repo_id.in_(repo_ids))
     if status:
         stmt = stmt.where(Ticket.status == status)
     async with session_scope() as s:
         return [ticket_summary(t) for t in (await s.scalars(stmt)).all()]
 
 
-async def list_notifications(repo_id: str | None = None, limit: int = 100) -> list[dict[str, Any]]:
+async def list_notifications(repo_ids: list[str] | None = None, limit: int = 100) -> list[dict[str, Any]]:
     stmt = select(Notification).order_by(Notification.id.desc()).limit(limit)
-    if repo_id:
-        stmt = stmt.where(Notification.repo_id == repo_id)
+    if repo_ids is not None:
+        stmt = stmt.where(Notification.repo_id.in_(repo_ids))
     async with session_scope() as s:
         return [notification_view(n) for n in (await s.scalars(stmt)).all()]

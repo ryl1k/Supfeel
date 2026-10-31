@@ -5,6 +5,8 @@ class TicketState(TypedDict, total=False):
     ticket_id: str
     repo_id: str
     business: str
+    account_id: str | None
+    handoff: dict[str, Any] | None  # from the first-line agent: transcript, attempted, agent
     customer: dict[str, Any]
     subject: str
     mode: Literal["message", "confirm"]

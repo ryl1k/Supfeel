@@ -5,8 +5,12 @@ from typing import Any
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
+from sqlalchemy import select
 from sse_starlette.sse import EventSourceResponse
 
+from app.accounts.auth import CurrentPrincipal, Principal, repo_for
+from app.db.models import Repo, Ticket
+from app.db.session import session_scope
 from app.obs.trace import load_trace
 from app.support import service
 
@@ -53,39 +57,66 @@ def _stream(events: AsyncIterator[dict[str, Any]]) -> EventSourceResponse:
     )
 
 
+async def ticket_for(p: Principal, ticket_id: str) -> Ticket:
+    async with session_scope() as s:
+        t = await s.get(Ticket, ticket_id)
+    if t is None:
+        raise HTTPException(status_code=404, detail="unknown ticket")
+    await repo_for(p, t.repo_id)
+    return t
+
+
+async def account_repo_ids(p: Principal) -> list[str] | None:
+    if p.is_admin:
+        return None
+    async with session_scope() as s:
+        return list((await s.scalars(select(Repo.id).where(Repo.account_id == p.account_id))).all())
+
+
+# The web endpoints are the workspace playground (signed-in owner). Agents use the MCP server (/mcp).
 @router.post("/repos/{repo_id}/tickets")
-async def create_ticket(repo_id: str, body: NewTicket) -> EventSourceResponse:
-    return _stream(service.create_ticket(repo_id, body.customer.model_dump(), body.message))
+async def create_ticket(repo_id: str, body: NewTicket, p: CurrentPrincipal) -> EventSourceResponse:
+    await repo_for(p, repo_id)
+    return _stream(service.create_ticket(repo_id, body.customer.model_dump(), body.message, channel="web"))
 
 
 @router.post("/tickets/{ticket_id}/messages")
-async def follow_up(ticket_id: str, body: FollowUp) -> EventSourceResponse:
+async def follow_up(ticket_id: str, body: FollowUp, p: CurrentPrincipal) -> EventSourceResponse:
+    await ticket_for(p, ticket_id)
     return _stream(service.post_message(ticket_id, body.message))
 
 
 @router.post("/tickets/{ticket_id}/confirm")
-async def confirm(ticket_id: str, body: Confirm) -> EventSourceResponse:
+async def confirm(ticket_id: str, body: Confirm, p: CurrentPrincipal) -> EventSourceResponse:
+    await ticket_for(p, ticket_id)
     return _stream(service.confirm(ticket_id, body.approved))
 
 
 @router.get("/tickets")
-async def list_tickets(repo_id: str | None = None, status: str | None = None, limit: int = 100) -> list[dict]:
-    return await service.list_tickets(repo_id, status, min(limit, 500))
+async def list_tickets(
+    p: CurrentPrincipal, repo_id: str | None = None, status: str | None = None, limit: int = 100
+) -> list[dict]:
+    if repo_id:
+        await repo_for(p, repo_id)
+        return await service.list_tickets([repo_id], status, min(limit, 500))
+    return await service.list_tickets(await account_repo_ids(p), status, min(limit, 500))
 
 
 @router.get("/tickets/{ticket_id}")
-async def get_ticket(ticket_id: str) -> dict:
-    try:
-        return await service.get_ticket(ticket_id)
-    except service.TicketError as e:
-        raise HTTPException(status_code=404, detail=str(e)) from e
+async def get_ticket(ticket_id: str, p: CurrentPrincipal) -> dict:
+    await ticket_for(p, ticket_id)
+    return await service.get_ticket(ticket_id)
 
 
 @router.get("/tickets/{ticket_id}/trace")
-async def ticket_trace(ticket_id: str) -> dict:
+async def ticket_trace(ticket_id: str, p: CurrentPrincipal) -> dict:
+    await ticket_for(p, ticket_id)
     return await load_trace(ticket_id)
 
 
 @router.get("/notifications")
-async def notifications(repo_id: str | None = None, limit: int = 100) -> list[dict]:
-    return await service.list_notifications(repo_id, min(limit, 500))
+async def notifications(p: CurrentPrincipal, repo_id: str | None = None, limit: int = 100) -> list[dict]:
+    if repo_id:
+        await repo_for(p, repo_id)
+        return await service.list_notifications([repo_id], min(limit, 500))
+    return await service.list_notifications(await account_repo_ids(p), min(limit, 500))

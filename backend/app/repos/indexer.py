@@ -16,6 +16,7 @@ from typing import Any
 
 from sqlalchemy import delete, func, select, update
 
+from app.accounts.context import current_account
 from app.config import get_settings
 from app.db.models import ApiOperation, IndexJob, LlmUsage, Repo, RepoChunk, RepoDoc, RepoFile
 from app.db.session import session_scope
@@ -83,6 +84,7 @@ async def run_job(job_id: str) -> None:
         job = await s.get(IndexJob, job_id)
         job.status = "running"
         repo_id = job.repo_id
+        current_account.set((await s.get(Repo, repo_id)).account_id)
     try:
         async with trace.span("index repository", kind="run", trace_id=job_id, repo_id=repo_id) as sp:
             result = await index_repo(repo_id, job_id)
