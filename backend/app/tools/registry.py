@@ -199,8 +199,13 @@ async def set_status(action_id: str, status: str) -> None:
             log.status = status
 
 
-async def execute(action_id: str, *, customer_id: str, conversation_id: str | None) -> dict:
-    """Run a proposed write action exactly once. Returns {ok, result|error, verification}."""
+async def execute(
+    action_id: str, *, customer_id: str, conversation_id: str | None, verify_after: bool = True
+) -> dict:
+    """Run a proposed write action exactly once. Returns {ok, result|error, verification}.
+
+    With verify_after=False the caller runs verify_action() later (the agent shows it as its own step).
+    """
     async with session_scope() as session:
         log = await session.get(ActionLog, action_id)
         if log is None:
@@ -227,9 +232,31 @@ async def execute(action_id: str, *, customer_id: str, conversation_id: str | No
         await _finish(action_id, "failed", e.to_dict(), None)
         return {"ok": False, "error": e.to_dict()}
 
+    if not verify_after:
+        await _finish(action_id, "done", result, None)
+        return {"ok": True, "result": result, "verification": None}
     verification = await verify(tool, parsed.model_dump(), result)
     await _finish(action_id, "done", result, verification)
     return {"ok": True, "result": result, "verification": verification}
+
+
+async def verify_action(action_id: str) -> dict:
+    """Read back persisted state for a done action and store the verification."""
+    async with session_scope() as session:
+        log = await session.get(ActionLog, action_id)
+        if log is None or log.status != "done":
+            return {
+                "ok": False,
+                "checks": [{"label": "Action completed", "ok": False, "detail": "not executed"}],
+            }
+        tool, args, result = log.tool, dict(log.args), dict(log.result or {})
+    parsed = TOOLS[tool].args.model_validate(args)
+    verification = await verify(tool, parsed.model_dump(), result)
+    async with session_scope() as session:
+        log = await session.get(ActionLog, action_id)
+        log.verification = verification
+        log.verified = verification["ok"]
+    return verification
 
 
 async def _finish(action_id: str, status: str, result: dict | None, verification: dict | None) -> None:
