@@ -1,0 +1,27 @@
+{
+  "feature": "observability-traces",
+  "status": "done",
+  "http": [
+    {"method": "GET", "path": "/api/tickets/{ticket_id}/trace", "handler": "backend/app/api/tickets.py:ticket_trace", "notes": "any trace id works (also used for ask_ traces)"},
+    {"method": "GET", "path": "/api/jobs/{job_id}/trace", "handler": "backend/app/api/repos.py:job_trace", "notes": "index job trace"}
+  ],
+  "code": [
+    "backend/app/obs/trace.py",
+    "backend/app/llm/client.py",
+    "backend/app/llm/ledger.py:record",
+    "backend/app/rag/embeddings.py:embed",
+    "backend/app/repos/github.py:GitHub.request",
+    "backend/app/repos/search.py:search",
+    "backend/app/support/graph.py:traced",
+    "backend/app/support/service.py:_drive",
+    "frontend/components/app/TraceView.tsx"
+  ],
+  "pages": [
+    {"route": "/app/tickets/[id]", "file": "frontend/app/app/tickets/[id]/page.tsx", "component": "frontend/components/app/TicketView.tsx"},
+    {"route": "/app/repos/[id]", "file": "frontend/app/app/repos/[id]/page.tsx", "component": "frontend/components/app/RepoView.tsx"}
+  ],
+  "tests": [
+    "backend/tests/repos/test_indexing.py",
+    "backend/tests/support/test_tickets.py"
+  ]
+}

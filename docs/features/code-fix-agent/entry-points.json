@@ -1,0 +1,26 @@
+{
+  "feature": "code-fix-agent",
+  "status": "done",
+  "http": [
+    {"method": "POST", "path": "/api/github/webhook", "handler": "backend/app/api/github.py:webhook", "notes": "HMAC X-Hub-Signature-256; check_suite / check_run / workflow_run / status -> ci.refresh; pull_request closed on supfeel/* -> ci.on_pr_closed"},
+    {"method": "GET", "path": "/api/tickets/{ticket_id}", "handler": "backend/app/api/tickets.py:get_ticket", "notes": "fix payload: pr_url, ci, diff, files"}
+  ],
+  "code": [
+    "backend/app/support/fixer.py",
+    "backend/app/support/ci.py",
+    "backend/app/support/graph.py:fix_node",
+    "backend/app/api/github.py",
+    "backend/app/repos/github.py",
+    "backend/app/llm/client.py:tool_turn",
+    "backend/app/support/callbacks.py:fire",
+    "backend/app/accounts/billing.py:refund"
+  ],
+  "tests": [
+    "backend/tests/support/test_tickets.py",
+    "backend/tests/test_billing.py"
+  ],
+  "docs": [
+    "docs/project/github-app-setup.md",
+    "docs/project/deployment.md"
+  ]
+}

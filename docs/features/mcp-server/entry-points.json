@@ -1,0 +1,36 @@
+{
+  "feature": "mcp-server",
+  "status": "done",
+  "http": [
+    {"method": "POST", "path": "/mcp", "handler": "backend/app/main.py:_mount_mcp", "notes": "streamable HTTP, stateless; Authorization: Bearer sf_live_…; tools in backend/app/mcp_server.py"},
+    {"method": "GET", "path": "/api/repos/{repo_id}/keys", "handler": "backend/app/api/accounts.py:list_keys", "notes": "signed-in owner"},
+    {"method": "POST", "path": "/api/repos/{repo_id}/keys", "handler": "backend/app/api/accounts.py:create_key", "notes": "returns the raw key once"},
+    {"method": "DELETE", "path": "/api/keys/{key_id}", "handler": "backend/app/api/accounts.py:revoke_key", "notes": "sets revoked"}
+  ],
+  "mcp_tools": [
+    {"name": "get_product_overview", "handler": "backend/app/mcp_server.py:get_product_overview", "notes": "free, read-only"},
+    {"name": "ask_product", "handler": "backend/app/mcp_server.py:ask_product", "notes": "$0.02"},
+    {"name": "escalate", "handler": "backend/app/mcp_server.py:escalate", "notes": "$0.15 (+$1.00 per fix run); wait, callback_url"},
+    {"name": "reply", "handler": "backend/app/mcp_server.py:reply", "notes": "included"},
+    {"name": "confirm", "handler": "backend/app/mcp_server.py:confirm", "notes": "destructive_hint; customer's explicit answer only"},
+    {"name": "get_ticket", "handler": "backend/app/mcp_server.py:get_ticket", "notes": "relay view"},
+    {"name": "list_tickets", "handler": "backend/app/mcp_server.py:list_tickets", "notes": "last 25 for the key's repo"}
+  ],
+  "pages": [
+    {"route": "/app/repos/[id]?tab=connect", "file": "frontend/app/app/repos/[id]/page.tsx", "component": "frontend/components/app/ConnectPanel.tsx"}
+  ],
+  "code": [
+    "backend/app/mcp_server.py",
+    "backend/app/main.py:lifespan",
+    "backend/app/main.py:_mount_mcp",
+    "backend/app/support/service.py:relay",
+    "backend/app/support/service.py:open_ticket",
+    "backend/app/support/triage.py:handoff_block",
+    "backend/app/support/callbacks.py:fire",
+    "backend/app/support/ci.py",
+    "backend/app/accounts/auth.py:resolve_key"
+  ],
+  "tests": [
+    "backend/tests/support/test_mcp.py"
+  ]
+}

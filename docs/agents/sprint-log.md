@@ -81,3 +81,50 @@ Append one entry per sprint (newest at the bottom).
 **Spend**: Claude $0.067 (second live smoke run). Cumulative $0.135 / $90, OpenAI $0.0001 / $5
 
 **Not done (needs the user)**: the real deploy (accounts/logins for Neon, Railway, Vercel), a `devrelay login` to fetch the hackathon rules.
+
+## Sprint 5: Pivot to code-aware support (2026-10-31)
+
+**Done**
+- GitHub App integration (installation tokens, PAT fallback, anonymous public reads), webhook with HMAC check
+- Repository indexing: tarball snapshots, filters/limits, code-aware chunking + outlines, OpenAPI → API operations,
+  Claude module summaries + overview (hash-skipped when unchanged), hybrid search, "ask the codebase"
+- Ticket graph: context → triage → explain / assist / fix / feature / escalate → respond; follow-ups, typed yes/no
+- Assisted actions with code-enforced authority + read-back verification; fix agent (Claude tool loop) → PR → CI
+  poller/webhooks → merge resolves the ticket; learning from closed tickets; push re-index
+- Tracing (`spans`) for runs, steps, LLM, embeddings, search, tools, HTTP; trace graph + waterfall UI
+- Notifications: inbox + Telegram / Slack / Discord (`scripts/telegram_setup.py`)
+- Frontend workspace, repo, ticket, inbox and customer support pages; landing copy updated
+- Slice demo target repo (`examples/slice-pizza`), mounted at `/demo-store`
+- 64 backend tests; live smoke `scripts/live_support_smoke.py`
+
+**Spend**: Claude $0.183, OpenAI $0.0002 (one live smoke). Cumulative $0.318 / $90, OpenAI $0.0003 / $5
+
+**Fixed along the way**: `.pem` key was in the repo root unignored (moved to `~/.secrets`, `*.pem` ignored); empty
+duplicate `DATABASE_URL` in `.env` removed; Chrome's `scrollIntoView` returning a Promise broke an effect.
+
+**Next**: deploy, publish Slice as its own repo, install the App, run the PR → CI → merge loop live.
+
+## Sprint 6: MCP-first, workspaces, pay as you go (2026-10-31)
+
+**Done**
+- MCP server at `/mcp` (MCP Python SDK 2.x, stateless streamable HTTP): escalate (with handoff transcript,
+  progress notifications, wait/background), reply, confirm (destructive), get_ticket, list_tickets, ask_product,
+  get_product_overview; relay-ready results; callbacks on later changes
+- Workspaces: email + password (scrypt), sessions, per-repo API keys (hashed), account scoping on every endpoint
+- Pay-as-you-go billing (mocked): credit ledger, unit prices, monthly limit, auto-recharge, top-ups, statement;
+  AI spend attributed per account
+- Review fixes from the docs pass: strict approval regex, cross-customer lookups blocked, protected CI paths,
+  no overwriting un-indexed files, CI-less repos settle, model-switch rebuild keeps summaries + learned tickets
+- Board (`/api/dashboard`), onboarding wizard with one-click demo, Connect tab, Billing page, login/signup
+- Motion system: landing escalation story, animated flow diagram, scroll reveals, skeletons, count-ups, page transitions
+- 75 backend tests; browser walkthrough of signup → onboarding → playground ticket → board → billing
+
+- Live mode on (user request): re-indexed `ryl1k/supfeel` with OpenAI embeddings + Claude summaries; live tickets
+  verified in the UI (fix agent found the address regex bug; reorder executed and verified)
+- UI pass (user feedback): bold white card titles, clearer Activity, kanban ticket board with filters
+- Review-pass fixes: wait=false errors keep their reason, `mcp>=2.3,<3`, callbacks signed with sha256(key),
+  refunds for failed index jobs and failed first ticket turns, `ix_repos_account_id`
+
+**Spend**: Claude $0.364, OpenAI $0.0022. Cumulative $0.682 / $90 Claude, $0.0025 / $5 OpenAI
+
+**Next**: deploy; publish Slice; live MCP → PR → CI → merge loop on the deploy.

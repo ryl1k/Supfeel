@@ -1,3 +1,9 @@
+> **Pivot (Sprint 5, 2026-10-31).** Supfeel is now *code-aware* support: a business imports its GitHub repository,
+> Supfeel indexes and explains it, and resolves each customer ticket in one of three ways: **explain** what the
+> customer misunderstood, **act** on their behalf through the business API, or **fix** the bug with a pull request
+> verified by CI (and notify the business). Everything is traced, closed tickets are learned from, and pushes
+> re-index. The Velora store below remains as the legacy demo at `/chat`.
+
 # Product brief: Supfeel
 
 > Name inspired by *sapphire*. Tagline: **"More than answers — real solutions."**

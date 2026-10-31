@@ -3,15 +3,28 @@ import type { AgentEvent, DemoCustomer } from "./types";
 export const API_URL = (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000").replace(/\/$/, "");
 
 /** POST + Server-Sent Events. EventSource only supports GET, so parse the stream by hand. */
-async function streamPost(path: string, body: unknown, onEvent: (e: AgentEvent) => void, signal?: AbortSignal) {
+export async function streamPost<E = AgentEvent>(
+  path: string,
+  body: unknown,
+  onEvent: (e: E) => void,
+  signal?: AbortSignal,
+  extraHeaders: Record<string, string> = {},
+) {
   const res = await fetch(`${API_URL}${path}`, {
     method: "POST",
-    headers: { "Content-Type": "application/json", Accept: "text/event-stream" },
+    headers: { "Content-Type": "application/json", Accept: "text/event-stream", ...extraHeaders },
     body: JSON.stringify(body),
     signal,
   });
   if (!res.ok || !res.body) {
-    throw new Error(`Request failed (${res.status})`);
+    let detail = `Request failed (${res.status})`;
+    try {
+      const j = await res.json();
+      if (typeof j.detail === "string") detail = j.detail;
+    } catch {
+      // keep default
+    }
+    throw new Error(detail);
   }
   const reader = res.body.getReader();
   const decoder = new TextDecoder();
@@ -32,7 +45,7 @@ async function streamPost(path: string, body: unknown, onEvent: (e: AgentEvent) 
       }
       if (name && data.length) {
         try {
-          onEvent({ event: name, data: JSON.parse(data.join("\n")) } as AgentEvent);
+          onEvent({ event: name, data: JSON.parse(data.join("\n")) } as E);
         } catch {
           // ignore malformed event
         }

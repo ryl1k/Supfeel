@@ -13,6 +13,7 @@ from app.db.models import Customer
 from app.db.seed import init_db, reset_demo
 from app.db.session import dispose_engine, session_scope
 from app.rag.ingest import ingest
+from app.repos.indexer import recover_stale_jobs
 
 
 async def main() -> None:
@@ -24,6 +25,7 @@ async def main() -> None:
         await reset_demo()
         print("boot: seeded demo data")
     print("boot: knowledge base", await ingest())
+    print("boot: stale index jobs recovered:", await recover_stale_jobs())
     print(f"boot: ready (LLM_MODE={settings.llm_mode}, model={settings.claude_model})")
     await dispose_engine()
 

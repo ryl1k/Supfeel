@@ -6,7 +6,7 @@
 - Sonnet 5.5: `thinking: {type: "disabled"}` returns 400; control cost with `output_config.effort="low"`.
 - No assistant prefill on current models — don't try to prefill JSON.
 - Keep system prompts byte-stable (no timestamps/IDs) or prompt caching silently breaks.
-- We do NOT use LangGraph `interrupt()`/checkpointer. Confirmation state lives in `conversations.state.pending`, and a confirm turn starts the graph at `act`. This is simpler and survives Railway restarts.
+- We do NOT use LangGraph `interrupt()`/checkpointer. Confirmation state lives in `conversations.state.pending`, and a confirm turn starts the graph at `act`. This is simpler and survives Render spin-downs and restarts.
 - Verification must read fresh state from DB, not the tool's own return value.
 - Clarifying-question turns must not count toward `MAX_REPLANS`.
 - The whole plan is approved as one unit: if any action needs confirmation, all of them wait.

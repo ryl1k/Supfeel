@@ -28,12 +28,35 @@ Each sprint ends with: docs updated (`docs/agents/`), spend logged (`budget.md`)
 - Wire to the backend SSE stream; demo customer picker
 
 ## Sprint 4: Polish and deploy ✅ (code side)
-- Deploy configs: `backend/Dockerfile`, `railway.json`, `frontend/vercel.json`, idempotent `app.boot`; guide in `deployment.md`
+- Deploy configs: `backend/Dockerfile`, `frontend/vercel.json`, idempotent `app.boot`; guide in `deployment.md`
 - Demo reset endpoint + button, 6 seeded demo personas
 - GitHub Actions CI (backend tests on pgvector, frontend lint + build)
 - README, demo script
 
 ## Open / next
-- **Actual deploy**: needs the user's Neon, Railway and Vercel accounts (follow `deployment.md`)
+- **Actual deploy**: needs the user's Neon, Render and Vercel accounts (follow `deployment.md`)
 - Fetch the hackathon rules and judging criteria via the DevRelay MCP and tailor the pitch
 - Optional: Qloo integration (the recommendation provider hook exists), restoring the transcript on page reload
+
+## Sprint 5: Code-aware support (pivot) ✅
+
+- GitHub App client, repository import + incremental indexing (code-aware chunks, OpenAPI actions, module
+  summaries, overview), Q&A over the repo
+- Ticket graph: triage → explain / assisted action / fix PR / feature / escalate, learning from closed tickets
+- Fix agent (Claude tool loop) → PR → CI verification → merge closes the ticket; push webhook re-indexes
+- Tracing for every step and call with a graph UI; Telegram / Slack / Discord notifications
+- Workspace dashboard, ticket pages, customer support page; Slice demo target repo
+
+## Sprint 6: MCP-first product ✅
+
+- MCP server (`/mcp`) as the main entry point: escalate / reply / confirm / get_ticket / ask_product / overview
+- Workspaces with sign-up, per-repo MCP keys, account scoping of all data
+- Pay-as-you-go billing (mocked): credits, unit prices, monthly limit, auto-recharge, statement
+- Board with charts and onboarding checklist; guided onboarding wizard with one-click demo
+- Motion system across landing and app
+
+## Next
+
+- Deploy (Render + Neon + Vercel), push Slice to its own public repo, install the App, set the webhook URL
+- Optional: auto-retry a fix when CI fails (feed the failing check log back to the agent)
+- Optional: per-repo API keys for programmatic ticket intake (widget embed)

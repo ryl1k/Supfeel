@@ -1,0 +1,27 @@
+{
+  "feature": "workspace-board",
+  "status": "done",
+  "http": [
+    {"method": "GET", "path": "/api/dashboard", "handler": "backend/app/api/dashboard.py:dashboard", "notes": "signed-in; 30-day stats, daily (14), onboarding, billing"},
+    {"method": "GET", "path": "/api/github/status", "handler": "backend/app/api/repos.py:github_status", "notes": "demo offer from _demo() (DEMO_GITHUB_REPO or the bundled Slice repo)"}
+  ],
+  "pages": [
+    {"route": "/app", "file": "frontend/app/app/page.tsx", "component": "frontend/components/app/Board.tsx"},
+    {"route": "/app/welcome", "file": "frontend/app/app/welcome/page.tsx", "component": "frontend/components/app/Welcome.tsx"},
+    {"route": "/", "file": "frontend/app/page.tsx", "component": "frontend/components/landing/Sections.tsx"}
+  ],
+  "code": [
+    "backend/app/api/dashboard.py",
+    "backend/app/api/repos.py:_demo",
+    "frontend/components/app/Charts.tsx",
+    "frontend/components/motion/Reveal.tsx",
+    "frontend/components/motion/CountUp.tsx",
+    "frontend/app/globals.css",
+    "frontend/components/landing/ChatPreview.tsx",
+    "frontend/components/landing/EscalationFlow.tsx",
+    "frontend/components/landing/Sections.tsx:Pricing"
+  ],
+  "tests": [
+    "backend/tests/support/test_mcp.py:test_dashboard_reflects_onboarding_and_tickets"
+  ]
+}

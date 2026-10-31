@@ -1,7 +1,7 @@
 import { BackgroundWaves } from "@/components/brand/BackgroundWaves";
 import { Hero } from "@/components/landing/Hero";
 import { Nav } from "@/components/landing/Nav";
-import { About, Features, FinalCta, Footer, HowItWorks } from "@/components/landing/Sections";
+import { About, Features, FinalCta, Footer, HowItWorks, Pricing } from "@/components/landing/Sections";
 
 export default function Home() {
   return (
@@ -13,6 +13,7 @@ export default function Home() {
       </div>
       <Features />
       <HowItWorks />
+      <Pricing />
       <About />
       <FinalCta />
       <Footer />

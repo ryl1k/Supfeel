@@ -16,6 +16,7 @@ RUN uv sync --frozen --no-dev --no-install-project
 
 COPY backend/app ./app
 COPY knowledge-base /app/knowledge-base
+COPY examples/slice-pizza /app/examples/slice-pizza
 
 ENV PATH="/app/backend/.venv/bin:$PATH" \
     PORT=8000 \
