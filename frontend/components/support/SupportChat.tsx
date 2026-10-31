@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { type FormEvent, useEffect, useMemo, useRef, useState } from "react";
 
 import { Checks } from "@/components/app/TicketView";
@@ -10,6 +10,7 @@ import { Gem, Logo } from "@/components/brand/Gem";
 import { AssistantRow, UserBubble } from "@/components/chat/primitives";
 import { Bolt, Check, Refresh, Search, Send, Shield, Sparkle } from "@/components/ui/icons";
 import { usePoll } from "@/lib/usePoll";
+import { useSessionToken } from "@/lib/session";
 import { type AgentTurn, useTicketChat } from "@/lib/useTicketChat";
 import { api } from "@/lib/workspace";
 
@@ -153,6 +154,11 @@ function FixCard({ turn }: { turn: AgentTurn }) {
 
 export function SupportChat() {
   const { repoId } = useParams<{ repoId: string }>();
+  const router = useRouter();
+  const token = useSessionToken();
+  useEffect(() => {
+    if (token === "") router.replace(`/login?next=/support/${repoId}`);
+  }, [token, repoId, router]);
   const repo = usePoll(() => api.repo(repoId), repoId, 30_000);
   const [person, setPerson] = useState(DEMO_PEOPLE[0]);
   const [custom, setCustom] = useState({ name: "", ref: "" });
@@ -192,6 +198,14 @@ export function SupportChat() {
 
       <div className="mx-auto grid w-full max-w-[1100px] flex-1 gap-5 px-4 pb-6 sm:px-8 lg:grid-cols-[260px_1fr]">
         <aside className="space-y-4">
+          <div className="rounded-[20px] border border-indigo-400/40 bg-sapphire-600/10 p-4 text-[13px] text-text-300">
+            <div className="mb-1 text-[12px] uppercase tracking-wider text-lavender-200">Playground</div>
+            In production your own support agent sends these escalations over MCP (
+            <Link href={`/app/repos/${repoId}`} className="text-lavender-200 hover:text-white">
+              Connect tab
+            </Link>
+            ). Here you play the customer. Each ticket uses credit like a real one.
+          </div>
           <div className="glass rounded-[20px] p-4">
             <div className="text-[12px] uppercase tracking-wider text-text-300">Support for</div>
             <div className="mt-1 text-[18px] font-semibold">{business}</div>

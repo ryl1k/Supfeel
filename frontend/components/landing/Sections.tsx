@@ -27,12 +27,12 @@ const FEATURES = [
 ];
 
 const STEPS = [
-  ["Import", "Connect a repository through the GitHub App."],
-  ["Index and explain", "Code, docs and API become a vector knowledge base."],
-  ["Triage", "Each message becomes a ticket: bug, question or task."],
-  ["Resolve", "Explain, act through your API, or ship a fix PR."],
-  ["Verify", "Read-back checks and CI prove it actually worked."],
-  ["Learn", "Resolved tickets and new pushes make it smarter."],
+  ["Sign up and import", "Create a workspace and connect your repository through the GitHub App."],
+  ["Supfeel learns it", "Code, docs and API become a knowledge base, re-indexed on every push."],
+  ["Add the MCP server", "One line in your support agent's config: Claude, Cursor or your own bot."],
+  ["Your bot escalates", "When it's stuck, it calls escalate with the conversation so far."],
+  ["Supfeel resolves", "Explains, acts through your API after the customer's OK, or ships a fix PR."],
+  ["Verified, then relayed", "Read-back checks and CI prove it; your bot sends the reply."],
 ];
 
 export function Features() {
@@ -117,6 +117,36 @@ export function About() {
   );
 }
 
+const PRICING = [
+  ["Escalated ticket", "$0.15", "Investigation, explanation or action, verification, reply"],
+  ["Fix run", "$1.00", "Root cause, code change, regression test, pull request"],
+  ["Product question", "$0.02", "Cited answer from your code and docs"],
+  ["Index run", "$0.10", "Import or re-index (changed files only)"],
+];
+
+export function Pricing() {
+  return (
+    <section id="pricing" className="relative z-10 mx-auto w-full max-w-[1320px] scroll-mt-10 px-4 py-20 sm:px-8">
+      <p className="text-[15px] uppercase tracking-[0.2em] text-lavender-300">Pricing</p>
+      <h2 className="mt-3 text-[34px] font-light leading-tight sm:text-[46px]">
+        Pay as you go. <span className="text-gradient italic">No subscription.</span>
+      </h2>
+      <p className="mt-4 max-w-[640px] text-[16px] text-text-300">
+        Start with $5 of free credit. Top up when you need to, set a monthly spend limit (it resets on the 1st), or turn on auto-recharge.
+      </p>
+      <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {PRICING.map(([name, price, body]) => (
+          <div key={name} className="glass rounded-[22px] p-6">
+            <div className="text-[15px] text-lavender-200">{name}</div>
+            <div className="mt-2 text-[34px] font-semibold">{price}</div>
+            <p className="mt-2 text-[14px] leading-relaxed text-text-300">{body}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 export function FinalCta() {
   return (
     <section className="relative z-10 mx-auto w-full max-w-[1320px] px-4 pb-24 pt-6 text-center sm:px-8">
@@ -124,10 +154,10 @@ export function FinalCta() {
         See it <span className="text-gradient italic">solve</span>, not just reply.
       </h2>
       <Link
-        href="/app"
+        href="/signup"
         className="btn-primary mt-8 inline-flex items-center gap-3 rounded-full px-10 py-4 text-[18px] font-medium"
       >
-        Open the workspace <ArrowRight className="h-5 w-5" />
+        Get started free <ArrowRight className="h-5 w-5" />
       </Link>
     </section>
   );

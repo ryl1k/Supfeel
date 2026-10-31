@@ -25,14 +25,12 @@ export function Hero() {
         </p>
         <div className="mt-12 flex flex-wrap items-center gap-4">
           <Link
-            href="/app"
+            href="/signup"
             className="btn-primary inline-flex items-center gap-3 rounded-full px-10 py-4 text-[19px] font-medium"
           >
-            Connect your repo <ArrowRight className="h-5 w-5" />
+            Get started <ArrowRight className="h-5 w-5" />
           </Link>
-          <Link href="/chat" className="text-[16px] text-lavender-200 transition-colors hover:text-white">
-            or try the store demo
-          </Link>
+          <span className="text-[15px] text-text-300">$5 free credit · pay as you go · works over MCP</span>
         </div>
       </div>
       <div className="flex justify-center lg:justify-end">
