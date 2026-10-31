@@ -1,6 +1,5 @@
-import { useState, useSyncExternalStore } from "react";
-
 import { API_URL, streamPost } from "./api";
+import { authHeaders, setSessionToken } from "./session";
 
 // ------------------------------------------------------------------ types (mirror backend/app/api/*.py)
 
@@ -77,6 +76,7 @@ export interface TicketSummary {
   confidence: number | null;
   status: TicketStatus;
   customer: { name?: string; email?: string; ref?: string };
+  channel?: "web" | "mcp" | "api";
   pr_url: string | null;
   ci: string | null;
   learned: boolean;
@@ -139,7 +139,7 @@ export interface TicketDetail extends TicketSummary {
   resolution: { summary?: string; kind?: string };
   fix: Fix;
   pending_action: TicketAction | null;
-  messages: { role: "customer" | "agent" | "system"; content: string; created_at: string }[];
+  messages: { role: "customer" | "agent" | "frontline" | "system"; content: string; created_at: string }[];
   actions: TicketAction[];
   notifications: Notification[];
 }
@@ -202,26 +202,6 @@ export type TicketEvent =
   | { event: "done"; data: { ticket_id: string; status: TicketStatus; category?: string; route?: string } }
   | { event: "error"; data: { code: string; message: string } };
 
-// ------------------------------------------------------------------ admin token (needed to import / configure)
-
-const TOKEN_KEY = "supfeel_admin_token";
-
-export function getAdminToken(): string {
-  try {
-    return localStorage.getItem(TOKEN_KEY) ?? "";
-  } catch {
-    return "";
-  }
-}
-
-export function setAdminToken(token: string) {
-  try {
-    localStorage.setItem(TOKEN_KEY, token);
-  } catch {
-    // storage unavailable: token lives for this page only
-  }
-}
-
 // ------------------------------------------------------------------ calls
 
 export class ApiError extends Error {
@@ -233,10 +213,12 @@ export class ApiError extends Error {
   }
 }
 
-async function call<T>(path: string, init: RequestInit & { admin?: boolean } = {}): Promise<T> {
-  const headers: Record<string, string> = { "Content-Type": "application/json" };
-  if (init.admin) headers["x-admin-token"] = getAdminToken();
+async function call<T>(path: string, init: RequestInit = {}): Promise<T> {
+  const headers: Record<string, string> = { "Content-Type": "application/json", ...authHeaders() };
   const res = await fetch(`${API_URL}${path}`, { ...init, headers: { ...headers, ...(init.headers as object) } });
+  if (res.status === 401 && !path.startsWith("/api/auth/")) {
+    setSessionToken(null); // expired or revoked: the shell sends the user to /login
+  }
   if (!res.ok) {
     let detail = `Request failed (${res.status})`;
     try {
@@ -250,16 +232,82 @@ async function call<T>(path: string, init: RequestInit & { admin?: boolean } = {
   return res.json() as Promise<T>;
 }
 
+export interface Me {
+  admin: boolean;
+  user: { id: string; email: string; name: string } | null;
+  account: { id: string; name: string } | null;
+  billing?: Billing;
+}
+
+export interface Price {
+  metric: string;
+  cents: number;
+  unit: string;
+  description: string;
+}
+
+export interface Billing {
+  balance_cents: number;
+  month: {
+    start: string;
+    resets_at: string;
+    spent_cents: number;
+    limit_cents: number;
+    by_metric: Record<string, { quantity: number; cents: number }>;
+    ai_cost_usd: number;
+  };
+  repos: number;
+  auto_recharge: { enabled: boolean; threshold_cents: number; amount_cents: number };
+  payment_method: { brand: string; last4: string; name?: string } | null;
+  prices: Price[];
+  statement?: {
+    id: number;
+    kind: "grant" | "topup" | "usage" | "refund";
+    metric: string | null;
+    quantity: number;
+    amount_cents: number;
+    description: string;
+    repo_id: string | null;
+    ref: string | null;
+    created_at: string;
+  }[];
+}
+
+export interface ApiKey {
+  id: string;
+  name: string;
+  prefix: string;
+  created_at: string;
+  last_used_at: string | null;
+  key?: string;
+}
+
 export const api = {
+  signup: (body: { email: string; password: string; name: string; company: string }) =>
+    call<Me & { token: string }>("/api/auth/signup", { method: "POST", body: JSON.stringify(body) }),
+  login: (body: { email: string; password: string }) =>
+    call<Me & { token: string }>("/api/auth/login", { method: "POST", body: JSON.stringify(body) }),
+  logout: () => call<{ ok: boolean }>("/api/auth/logout", { method: "POST" }),
+  me: () => call<Me>("/api/me"),
+  billing: () => call<Billing>("/api/billing"),
+  topup: (amount_cents: number, card?: { number: string; name: string }) =>
+    call<Billing>("/api/billing/topup", { method: "POST", body: JSON.stringify({ amount_cents, card }) }),
+  saveCard: (card: { number: string; name: string }) => call<Billing>("/api/billing/card", { method: "PUT", body: JSON.stringify(card) }),
+  billingSettings: (body: Record<string, number | boolean>) =>
+    call<Billing>("/api/billing/settings", { method: "PATCH", body: JSON.stringify(body) }),
+  keys: (repoId: string) => call<ApiKey[]>(`/api/repos/${repoId}/keys`),
+  createKey: (repoId: string, name: string) => call<ApiKey>(`/api/repos/${repoId}/keys`, { method: "POST", body: JSON.stringify({ name }) }),
+  revokeKey: (keyId: string) => call<{ revoked: string }>(`/api/keys/${keyId}`, { method: "DELETE" }),
+  deleteRepo: (id: string) => call<{ deleted: string }>(`/api/repos/${id}`, { method: "DELETE" }),
   githubStatus: () => call<GithubStatus>("/api/github/status"),
   repos: () => call<Repo[]>("/api/repos"),
   repo: (id: string) => call<RepoDetail>(`/api/repos/${id}`),
   jobs: (id: string) => call<IndexJob[]>(`/api/repos/${id}/jobs`),
   importRepo: (body: { repo?: string; local_path?: string; branch?: string }) =>
-    call<{ id: string; job_id: string }>("/api/repos", { method: "POST", body: JSON.stringify(body), admin: true }),
-  reindex: (id: string) => call<{ job_id: string }>(`/api/repos/${id}/reindex`, { method: "POST", admin: true }),
+    call<{ id: string; job_id: string }>("/api/repos", { method: "POST", body: JSON.stringify(body) }),
+  reindex: (id: string) => call<{ job_id: string }>(`/api/repos/${id}/reindex`, { method: "POST" }),
   updateSettings: (id: string, body: Partial<Repo["settings"]>) =>
-    call<Repo["settings"]>(`/api/repos/${id}/settings`, { method: "PATCH", body: JSON.stringify(body), admin: true }),
+    call<Repo["settings"]>(`/api/repos/${id}/settings`, { method: "PATCH", body: JSON.stringify(body) }),
   search: (id: string, q: string) => call<Hit[]>(`/api/repos/${id}/search?q=${encodeURIComponent(q)}`),
   ask: (id: string, question: string) =>
     call<AskAnswer>(`/api/repos/${id}/ask`, { method: "POST", body: JSON.stringify({ question }) }),
@@ -274,21 +322,9 @@ export const api = {
 
 export const ticketStream = {
   create: (repoId: string, customer: TicketSummary["customer"], message: string, on: (e: TicketEvent) => void, signal?: AbortSignal) =>
-    streamPost<TicketEvent>(`/api/repos/${repoId}/tickets`, { customer, message }, on, signal),
+    streamPost<TicketEvent>(`/api/repos/${repoId}/tickets`, { customer, message }, on, signal, authHeaders()),
   message: (ticketId: string, message: string, on: (e: TicketEvent) => void, signal?: AbortSignal) =>
-    streamPost<TicketEvent>(`/api/tickets/${ticketId}/messages`, { message }, on, signal),
+    streamPost<TicketEvent>(`/api/tickets/${ticketId}/messages`, { message }, on, signal, authHeaders()),
   confirm: (ticketId: string, approved: boolean, on: (e: TicketEvent) => void, signal?: AbortSignal) =>
-    streamPost<TicketEvent>(`/api/tickets/${ticketId}/confirm`, { approved }, on, signal),
+    streamPost<TicketEvent>(`/api/tickets/${ticketId}/confirm`, { approved }, on, signal, authHeaders()),
 };
-
-// ------------------------------------------------------------------ admin token as a hook (SSR-safe)
-
-
-const noopSubscribe = () => () => {};
-
-/** Editable admin-token field value: starts from localStorage on the client, "" during prerender. */
-export function useAdminTokenField(): [string, (v: string) => void] {
-  const stored = useSyncExternalStore(noopSubscribe, getAdminToken, () => "");
-  const [draft, setDraft] = useState<string | null>(null);
-  return [draft ?? stored, setDraft];
-}

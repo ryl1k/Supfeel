@@ -8,15 +8,23 @@ export async function streamPost<E = AgentEvent>(
   body: unknown,
   onEvent: (e: E) => void,
   signal?: AbortSignal,
+  extraHeaders: Record<string, string> = {},
 ) {
   const res = await fetch(`${API_URL}${path}`, {
     method: "POST",
-    headers: { "Content-Type": "application/json", Accept: "text/event-stream" },
+    headers: { "Content-Type": "application/json", Accept: "text/event-stream", ...extraHeaders },
     body: JSON.stringify(body),
     signal,
   });
   if (!res.ok || !res.body) {
-    throw new Error(`Request failed (${res.status})`);
+    let detail = `Request failed (${res.status})`;
+    try {
+      const j = await res.json();
+      if (typeof j.detail === "string") detail = j.detail;
+    } catch {
+      // keep default
+    }
+    throw new Error(detail);
   }
   const reader = res.body.getReader();
   const decoder = new TextDecoder();
