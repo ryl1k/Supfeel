@@ -130,16 +130,18 @@ function Limits({ b, onChange }: { b: Billing; onChange: (b: Billing) => void })
           <Input type="number" min={0} step={1} value={limit} onChange={(e) => setLimit(e.target.value)} />
           <span className="text-[12px] text-text-300">When the limit is reached, MCP calls return a clear error until the 1st of next month.</span>
         </label>
-        <label className="flex items-center gap-3 text-[14px] text-text-300">
-          <input type="checkbox" checked={auto.enabled} onChange={(e) => setAuto({ ...auto, enabled: e.target.checked })} className="h-4 w-4 accent-[var(--sapphire-500)]" />
-          Auto-recharge
-          <span className="flex items-center gap-1.5">
-            add
-            <Input className="w-20 py-1.5" type="number" min={5} value={auto.amount_cents / 100} onChange={(e) => setAuto({ ...auto, amount_cents: Math.round(Number(e.target.value) * 100) })} aria-label="Recharge amount" />
-            when below
-            <Input className="w-20 py-1.5" type="number" min={0} value={auto.threshold_cents / 100} onChange={(e) => setAuto({ ...auto, threshold_cents: Math.round(Number(e.target.value) * 100) })} aria-label="Recharge threshold" />
-          </span>
-        </label>
+        <div className="rounded-2xl border border-line bg-bg-0/40 p-4">
+          <label className="flex items-center gap-3 text-[14px] font-medium text-text-100">
+            <input type="checkbox" checked={auto.enabled} onChange={(e) => setAuto({ ...auto, enabled: e.target.checked })} className="h-4 w-4 accent-[var(--sapphire-500)]" />
+            Auto-recharge
+          </label>
+          <div className="mt-3 flex flex-wrap items-center gap-2 text-[14px] text-text-300">
+            <span className="whitespace-nowrap">Add $</span>
+            <Input className="w-24 py-1.5" type="number" min={5} value={auto.amount_cents / 100} onChange={(e) => setAuto({ ...auto, amount_cents: Math.round(Number(e.target.value) * 100) })} aria-label="Recharge amount" />
+            <span className="whitespace-nowrap">when the balance drops below $</span>
+            <Input className="w-24 py-1.5" type="number" min={0} value={auto.threshold_cents / 100} onChange={(e) => setAuto({ ...auto, threshold_cents: Math.round(Number(e.target.value) * 100) })} aria-label="Recharge threshold" />
+          </div>
+        </div>
         {auto.enabled && !b.payment_method ? <p className="text-[12px] text-warning">Add a card to use auto-recharge.</p> : null}
         <div className="flex items-center gap-3">
           <Button type="submit" variant="ghost">

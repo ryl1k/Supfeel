@@ -11,7 +11,7 @@ export function Card({ children, className, title, action }: { children: ReactNo
     <section className={cx("rounded-[20px] border border-line bg-panel p-5 backdrop-blur-md transition-colors sm:p-6", className)}>
       {title || action ? (
         <header className="mb-4 flex items-center justify-between gap-3">
-          {title ? <h2 className="text-[15px] font-semibold tracking-wide text-lavender-200">{title}</h2> : <span />}
+          {title ? <h2 className="text-[17px] font-bold tracking-tight text-white">{title}</h2> : <span />}
           {action}
         </header>
       ) : null}

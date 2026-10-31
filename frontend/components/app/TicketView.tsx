@@ -5,8 +5,9 @@ import { useParams } from "next/navigation";
 
 import { Check, Cross } from "@/components/ui/icons";
 import { usePoll } from "@/lib/usePoll";
-import { api, type Fix, type Notification, type TicketAction, type TicketDetail } from "@/lib/workspace";
+import { api, type Fix, type TicketAction, type TicketDetail } from "@/lib/workspace";
 
+import { ActivityItem } from "./Activity";
 import { TraceView } from "./TraceView";
 import { Badge, Card, CategoryBadge, cx, Empty, ErrorNote, Markdown, StatusBadge, timeAgo } from "./ui";
 
@@ -152,35 +153,6 @@ function ActionsCard({ actions }: { actions: TicketAction[] }) {
   );
 }
 
-export function NotificationItem({ n }: { n: Notification }) {
-  return (
-    <li className="py-3">
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="text-[14px] text-text-100">{n.title}</span>
-        {n.delivered.map((d) => (
-          <Badge key={d} tone="success">
-            {d}
-          </Badge>
-        ))}
-        <span className="ml-auto text-[12px] text-text-300">{timeAgo(n.created_at)}</span>
-      </div>
-      {n.body ? <p className="mt-1 whitespace-pre-wrap text-[13px] text-text-300">{n.body}</p> : null}
-      <div className="mt-1 flex gap-3 text-[12px]">
-        {n.ticket_id ? (
-          <Link href={`/app/tickets/${n.ticket_id}`} className="text-lavender-200 hover:text-white">
-            {n.ticket_id}
-          </Link>
-        ) : null}
-        {n.url && !n.url.includes("/app/tickets/") ? (
-          <a href={n.url} target="_blank" rel="noreferrer" className="text-lavender-200 hover:text-white">
-            Open ↗
-          </a>
-        ) : null}
-      </div>
-    </li>
-  );
-}
-
 function Conversation({ t }: { t: TicketDetail }) {
   return (
     <Card title="Conversation">
@@ -261,7 +233,7 @@ export function TicketView() {
             {t.notifications.length ? (
               <ul className="divide-y divide-line/60">
                 {t.notifications.map((n) => (
-                  <NotificationItem key={n.id} n={n} />
+                  <ActivityItem key={n.id} n={n} />
                 ))}
               </ul>
             ) : (

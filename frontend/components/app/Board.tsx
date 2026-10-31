@@ -10,7 +10,7 @@ import { api, type Dashboard } from "@/lib/workspace";
 
 import { CategoryBar, DailyBars, Ring } from "./Charts";
 import { money } from "./Shell";
-import { NotificationItem } from "./TicketView";
+import { ActivityItem } from "./Activity";
 import { Card, cx, Empty, ErrorNote } from "./ui";
 import { GithubCard, ImportCard, RepoCard, TicketList } from "./Workspace";
 
@@ -222,7 +222,7 @@ export function Board() {
           ) : notes.data.length ? (
             <ul className="stagger divide-y divide-line/60">
               {notes.data.slice(0, 6).map((n) => (
-                <NotificationItem key={n.id} n={n} />
+                <ActivityItem key={n.id} n={n} compact />
               ))}
             </ul>
           ) : (
@@ -233,7 +233,7 @@ export function Board() {
 
       <section>
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-[15px] font-semibold text-lavender-200">Repositories</h2>
+          <h2 className="text-[17px] font-bold tracking-tight text-white">Repositories</h2>
           <span className="text-[12px] text-text-300">{repos.data ? `${repos.data.length} connected` : ""}</span>
         </div>
         {!repos.data ? (

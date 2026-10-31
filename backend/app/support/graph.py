@@ -171,7 +171,7 @@ async def assist_node(state: TicketState) -> dict[str, Any]:
         await notify(
             repo.id,
             "bug_reported",
-            f"Possible bug reported in {state['ticket_id']}",
+            f"Possible bug in {state['ticket_id']}: {state['triage']['subject']}",
             state["triage"].get("bug_hypothesis") or state["triage"]["summary"],
             _ticket_url(state["ticket_id"]),
             state["ticket_id"],
