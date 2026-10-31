@@ -103,3 +103,22 @@ Append one entry per sprint (newest at the bottom).
 duplicate `DATABASE_URL` in `.env` removed; Chrome's `scrollIntoView` returning a Promise broke an effect.
 
 **Next**: deploy, publish Slice as its own repo, install the App, run the PR → CI → merge loop live.
+
+## Sprint 6: MCP-first, workspaces, pay as you go (2026-10-31)
+
+**Done**
+- MCP server at `/mcp` (MCP Python SDK 2.x, stateless streamable HTTP): escalate (with handoff transcript,
+  progress notifications, wait/background), reply, confirm (destructive), get_ticket, list_tickets, ask_product,
+  get_product_overview; relay-ready results; callbacks on later changes
+- Workspaces: email + password (scrypt), sessions, per-repo API keys (hashed), account scoping on every endpoint
+- Pay-as-you-go billing (mocked): credit ledger, unit prices, monthly limit, auto-recharge, top-ups, statement;
+  AI spend attributed per account
+- Review fixes from the docs pass: strict approval regex, cross-customer lookups blocked, protected CI paths,
+  no overwriting un-indexed files, CI-less repos settle, model-switch rebuild keeps summaries + learned tickets
+- Board (`/api/dashboard`), onboarding wizard with one-click demo, Connect tab, Billing page, login/signup
+- Motion system: landing escalation story, animated flow diagram, scroll reveals, skeletons, count-ups, page transitions
+- 75 backend tests; browser walkthrough of signup → onboarding → playground ticket → board → billing
+
+**Spend**: $0 (all mock mode). Cumulative $0.318 / $90 Claude, $0.0003 / $5 OpenAI
+
+**Next**: deploy; publish Slice; live MCP → PR → CI → merge loop on the deploy.

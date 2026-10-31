@@ -47,6 +47,8 @@ Order: Neon → Render → Vercel → update the backend's CORS origins.
 | `ADMIN_TOKEN` | a long random string |
 | `CORS_ORIGINS` | `https://<your-app>.vercel.app` (set after step 3) |
 | `CORS_ORIGIN_REGEX` | optional, e.g. `https://supfeel-.*\.vercel\.app` for preview deploys |
+| `OPEN_IMPORT` | `false` in production (local-path imports stay disabled; GitHub imports need a signed-in workspace) |
+| `DEMO_GITHUB_REPO` | e.g. `ryl1k/slice-pizza`: offered as the one-click demo in onboarding |
 | `PUBLIC_APP_URL` | `https://<your-app>.vercel.app` (links in PR bodies and notifications) |
 | `GITHUB_APP_ID`, `GITHUB_APP_SLUG`, `GITHUB_WEBHOOK_SECRET` | from the GitHub App (`docs/project/github-app-setup.md`) |
 | `GITHUB_APP_PRIVATE_KEY_PATH` | `/etc/secrets/github-app.pem` with a **Secret File** named `github-app.pem` (Environment → Secret Files) |
@@ -68,6 +70,9 @@ Free Render services **spin down after ~15 minutes without traffic**. The next r
 - Or at least open the site ~1 minute before presenting.
 
 ### After the first deploy
+
+- MCP endpoint: `https://<service>.onrender.com/mcp`. Check it with
+  `npx @modelcontextprotocol/inspector` (transport *Streamable HTTP*, header `Authorization: Bearer sf_live_…`).
 
 - GitHub App → set the **Webhook URL** to `https://<service>.onrender.com/api/github/webhook`.
 - Workspace → import your repo. For the Slice demo, push `examples/slice-pizza` to its own **public** repo (so CI on

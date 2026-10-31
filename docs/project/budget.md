@@ -44,6 +44,12 @@ So $45 of operational spend covers more than 1,000 full conversations.
 Caps: `INDEX_CAP_USD` 2.00 per index job, `TICKET_CAP_USD` 0.40 per ticket, `FIX_CAP_USD` 1.50 per fix run,
 `REPO_MAX_FILES` 2000, `REPO_MAX_MODULES_SUMMARIZED` 30. A medium repo (≈ 30 modules) costs about $0.5 to index.
 
+## Customer pricing vs our cost (Sprint 6)
+
+Pay-as-you-go prices sit well above measured model cost: ticket $0.15 (cost ≈ $0.01–0.04), fix run $1.00
+(cost ≈ $0.04–0.50), question $0.02 (≈ $0.005), index run $0.10 (≈ $0.07 for a small repo, $0 when unchanged).
+Per-workspace AI cost is tracked (`llm_usage.account_id`) and shown on the Billing page.
+
 ## Mandatory controls (implement in Sprint 1)
 
 1. **Central LLM client**. All Claude calls go through one module that:
@@ -72,3 +78,4 @@ Update after each sprint (from `GET /api/admin/usage`, which sums `llm_usage`).
 | 3 | 0.00 | 0.00 | UI built against LLM_MODE=mock |
 | 4 | 0.067 | 0.00 | Second live smoke run after the prompt change. **Cumulative: $0.135 Claude, $0.0001 OpenAI** |
 | 5 | 0.183 | 0.0002 | Pivot to code support. One live smoke of indexing + 3 ticket routes (`scripts/live_support_smoke.py`). **Cumulative: $0.318 Claude, $0.0003 OpenAI** |
+| 6 | 0.00 | 0.00 | MCP server, workspaces, pay-as-you-go billing, board, onboarding, animations: all built and tested in mock mode. **Cumulative: $0.318 Claude, $0.0003 OpenAI** |

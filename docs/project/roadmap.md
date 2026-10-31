@@ -47,6 +47,14 @@ Each sprint ends with: docs updated (`docs/agents/`), spend logged (`budget.md`)
 - Tracing for every step and call with a graph UI; Telegram / Slack / Discord notifications
 - Workspace dashboard, ticket pages, customer support page; Slice demo target repo
 
+## Sprint 6: MCP-first product ✅
+
+- MCP server (`/mcp`) as the main entry point: escalate / reply / confirm / get_ticket / ask_product / overview
+- Workspaces with sign-up, per-repo MCP keys, account scoping of all data
+- Pay-as-you-go billing (mocked): credits, unit prices, monthly limit, auto-recharge, statement
+- Board with charts and onboarding checklist; guided onboarding wizard with one-click demo
+- Motion system across landing and app
+
 ## Next
 
 - Deploy (Render + Neon + Vercel), push Slice to its own public repo, install the App, set the webhook URL

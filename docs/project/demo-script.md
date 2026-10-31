@@ -5,6 +5,12 @@ imported and **Ready**, Settings → API base URL `https://<api>/demo-store` + t
 `curl -X POST https://<api>/demo-store/admin/reset`. Have Telegram open on your phone.
 Fallback: `LLM_MODE=mock` still runs every route (rules brains; bugs become reports instead of PRs).
 
+## 0'. Setup in front of judges (optional, 60 s)
+Get started → sign up → the wizard imports the Slice demo in one click, shows what Supfeel learned, pre-fills the
+demo API, creates an MCP key and shows the `claude mcp add` line. Paste it into Claude Code on stage, then ask
+Claude Code: "A Slice customer says checkout rejects 12 Oak St Apt #4B. Escalate it to Supfeel." Claude calls
+`escalate`, streams progress, and relays the reply. The Board and the ticket's trace update live.
+
 ## 0. Hook (20 s)
 "Support teams bounce customers between FAQs, agents and an engineering backlog. Supfeel has read your code, so it
 knows whether the customer misunderstood, whether it can just do it for them, or whether the product is broken, and

@@ -1,64 +1,61 @@
 # Agent context: current state
 
-_Last updated: 2026-10-31, end of Sprint 5 (pivot to code-aware support)._
+_Last updated: 2026-10-31, end of Sprint 6 (MCP-first, workspaces, pay-as-you-go)._
 
 ## Where we are
 
-- **Product (since Sprint 5)**: import a GitHub repo → index + explain it → resolve tickets by explaining, acting
-  through the business API, or fixing bugs with a PR verified by CI. Tracing, learning, notifications, push re-index.
-- Backend: 64 tests passing (mock mode). Live pipeline verified with `scripts/live_support_smoke.py` ($0.18).
-- Frontend: `/app` workspace, `/app/repos/[id]`, `/app/tickets[/id]`, `/app/inbox`, `/support/[repoId]`; verified
-  end to end in headless Chrome against the mock backend (desktop + 390 px).
-- The legacy Velora agent (`/chat`, `app/agent`, `app/tools`, `knowledge-base/`) still works and is untouched.
+- **Product**: Supfeel is a tier-2 support agent delivered as an **MCP server**. A business signs up, imports its
+  GitHub repo (indexed + explained), and adds Supfeel to its first-line agent with a per-repo key. The agent calls
+  `escalate`; Supfeel explains, acts through the business API (customer confirms), or fixes the bug with a
+  CI-verified PR, and returns a relay-ready result. Tracing, learning, notifications, push re-index.
+- **Billing**: pay as you go (mocked payments): credits, unit prices, monthly spend limit (resets on the 1st, UTC),
+  auto-recharge, $5 welcome credit.
+- **Frontend**: landing (animated escalation story, flow diagram, pricing), signup/login, onboarding wizard
+  (`/app/welcome`, one-click Slice demo), Board (`/app`: checklist, KPIs, charts, activity), repo page with
+  Connect (MCP) tab, tickets, inbox, billing, playground (`/support/[repoId]`).
+- Backend: 75 tests passing (mock mode), incl. MCP over streamable HTTP. Live Claude pipeline verified in Sprint 5.
 - Spend: $0.318 Claude, $0.0003 OpenAI (of $90 / $5).
-- GitHub App `supfeel` is created and its credentials verified (app auth works). It has **no installations yet**.
-  Telegram notifications are configured in the user's `.env` and delivered.
+- GitHub App `supfeel` credentials verified; **no installations yet**. Telegram notifications configured.
+- `dev` is ahead of `main`; merge at sprint end.
 
 ## Run locally
 
 ```bash
 docker compose up -d
 cd backend && uv sync && uv run python -m app.boot
-ALLOW_LOCAL_REPOS=true uv run uvicorn app.main:app --reload
-cd ../frontend && npm run dev                       # /app
-uv run pytest                                       # DB supfeel_test
-LLM_MODE=live uv run python -m scripts.live_support_smoke   # ≈ $0.2
+DATABASE_URL=postgresql+asyncpg://postgres:postgres@localhost:5433/supfeel \
+  ALLOW_LOCAL_REPOS=true OPEN_IMPORT=true uv run uvicorn app.main:app --reload
+cd ../frontend && npm run dev     # http://localhost:3000 → Get started
+uv run pytest                     # DB supfeel_test
 ```
 
-`.env` points `DATABASE_URL` at **Neon**. For local runs export
-`DATABASE_URL=postgresql+asyncpg://postgres:postgres@localhost:5433/supfeel` (env beats `.env`).
+`.env` points `DATABASE_URL` at Neon; export the local URL for local runs (env beats `.env`). If the Next dev
+server throws "x is not a function" after a module's exports changed, restart it (`rm -rf .next`).
 
 ## Map
 
 | Path | What |
 |---|---|
-| `backend/app/repos/` | `github.py` (App JWT → installation tokens, PAT, anonymous), `source.py`, `chunker.py`, `openapi.py`, `explain.py`, `indexer.py` (jobs), `search.py`, `ask.py` |
-| `backend/app/support/` | `graph.py` (LangGraph), `service.py` (turn driver, follow-ups, confirm), `triage.py`, `context.py`, `assist.py` (authority), `fixer.py` (tool loop + PR), `ci.py`, `learn.py`, `notify.py` |
-| `backend/app/obs/trace.py` | spans (ContextVar), `record_span`, `load_trace` |
-| `backend/app/api/` | `repos.py`, `tickets.py`, `github.py` (webhook), legacy `chat.py`, `admin.py` |
-| `examples/slice-pizza/` | demo target (bugs: `#`/`/` rejected in street regex; `>` instead of `>=` for free delivery) |
-| `frontend/components/app/` | dashboard (Workspace, RepoView, TicketView, TraceView, Lists, ui) |
-| `frontend/components/support/` | customer support chat |
-| `docs/features/` | 10-file context per feature (6 new ones for Sprint 5) |
+| `backend/app/mcp_server.py` | MCP tools + key auth; mounted in `main.py` (`_mount_mcp`) |
+| `backend/app/accounts/` | `auth.py` (users, sessions, keys, scoping), `billing.py` (credits), `context.py` (account ContextVar) |
+| `backend/app/api/` | `accounts.py` (auth, billing, keys), `dashboard.py`, `repos.py`, `tickets.py`, `github.py` |
+| `backend/app/repos/`, `backend/app/support/`, `backend/app/obs/` | indexing, ticket graph, tracing (see Sprint 5) |
+| `frontend/components/app/` | Board, Welcome, RepoView, ConnectPanel, TicketView, BillingView, TraceView, Charts, Shell |
+| `frontend/components/motion/` | Reveal (scroll), CountUp; motion CSS in `app/globals.css` |
+| `docs/features/` | 10-file context per feature (mcp-server, accounts-billing, workspace-board are Sprint 6) |
 
 ## Next up
 
-1. Deploy (`docs/project/deployment.md`): Neon → Render (+ Secret File for the App key) → Vercel → CORS → App webhook URL.
-2. Push `examples/slice-pizza` to its own **public** repo, install the App on it, import it, set its API settings.
-3. Hackathon rules via DevRelay MCP after `devrelay login`.
-4. Optional: retry a fix when CI fails using the failing check's log; API keys for programmatic ticket intake.
+1. Deploy (`docs/project/deployment.md`): Neon → Render (Secret File for the App key) → Vercel → CORS → App webhook URL.
+2. Push `examples/slice-pizza` to its own public repo, install the App, set `DEMO_GITHUB_REPO`.
+3. Live run of the full loop on the deploy: MCP escalate from Claude Code → fix PR → CI → merge → re-index.
+4. Hackathon rules via DevRelay MCP after `devrelay login`.
 
 ## Key decisions
 
-- Index = one tarball per run + content-hash diff (simple, robust; "incremental" by content, not by git diff).
-- Fix agent edits an in-memory overlay of indexed files; publishing re-applies `old_str → new_str` edits on the
-  branch head, so a stale index can't revert newer code.
-- CI on the PR is the verification for fixes; read-back is the verification for actions.
-- Authority rules live in code (`assist.py`), never only in prompts.
-- Every ticket turn runs in a background task (survives disconnects); trace id = ticket id.
-- Learning = closed tickets embedded as `ticket` chunks in the repo index.
-
-## Open questions
-
-- Hackathon rules / judging criteria still unknown (DevRelay needs login).
-- Render free tier sleeps; GitHub webhooks time out at 10 s → keep-alive ping; CI poller covers missed events.
+- MCP is the main entry point; the web ticket API is the owner's playground. One key = one repository.
+- Pay as you go instead of subscriptions (user's call, 2026-10-31). Charges happen when work starts; refunds when a
+  fix run never reached the model. Balance checks aren't transactional (fine for the demo).
+- Authority rules for actions live in code; the customer's confirmation travels through `confirm` (MCP) and must
+  never be given by the calling agent on its own (tool marked destructive, documented in the server instructions).
+- Categorical chart colors come from the dataviz reference palette, validated against the panel surface.

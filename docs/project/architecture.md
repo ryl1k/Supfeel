@@ -1,6 +1,6 @@
 # Architecture
 
-Status: **current** (updated Sprint 5, 2026-10-31: pivot to code-aware support). The original Velora store agent
+Status: **current** (Sprint 6, 2026-10-31: MCP-first, workspaces, pay-as-you-go. Sprint 5: code-aware support). The original Velora store agent
 still exists as a legacy demo (`/chat`); its design is kept below under "Legacy: Velora agent".
 
 ## Overview
@@ -39,6 +39,22 @@ still exists as a legacy demo (`/chat`); its design is kept below under "Legacy:
 | GitHub | GitHub App (installation tokens), PAT fallback, anonymous for public repos | PRs as a bot, per-repo access |
 | Tracing | Own `spans` table + UI graph (`app/obs/trace.py`, `TraceView.tsx`) | Free, judge-visible transparency |
 | Notifications | Dashboard inbox + Telegram / Slack / Discord webhooks | Free |
+
+## Entry points (Sprint 6)
+
+- **MCP** (`app/mcp_server.py`, mounted at `/mcp`, stateless streamable HTTP): the main entry point. A business's
+  first-line agent authenticates with a per-repository key (`sf_live_…`, sha256-hashed) and calls `escalate` with
+  the conversation and what it already tried. Results are relay-ready (`customer_reply`, `next_step`,
+  `needs_confirmation`). Step events are forwarded as MCP progress notifications; `callback_url` gets later changes.
+- **Web** (`/api/*`): the workspace dashboard (session bearer tokens), the playground, billing, keys.
+- **GitHub webhook** (`/api/github/webhook`): push → re-index, CI/PR events → fix verification.
+
+## Workspaces and billing (`app/accounts/`)
+
+Account → users, repos, API keys, credit ledger (`credit_entries`). Pay as you go: units are charged when work
+starts (ticket $0.15, fix run $1.00, question $0.02, index run $0.10), a monthly spend limit caps each calendar
+month, optional auto-recharge, mocked card payments. Claude/OpenAI spend is attributed to the account through a
+ContextVar read by the usage ledger (`llm_usage.account_id`), so margins are visible per workspace.
 
 ## Repository indexing (`app/repos/`)
 
