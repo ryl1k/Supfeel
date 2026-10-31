@@ -5,20 +5,22 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api import admin, chat, github, repos, tickets
+from app.api import accounts, admin, chat, github, repos, tickets
 from app.config import get_settings
 from app.db.session import dispose_engine
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    from app.mcp_server import mcp
     from app.support.ci import resume_tracking
 
     try:
         await resume_tracking()
     except Exception:  # never block startup on this (e.g. DB not migrated yet)
         logging.getLogger(__name__).exception("could not resume CI tracking")
-    yield
+    async with mcp.session_manager.run():
+        yield
     await dispose_engine()
 
 
@@ -38,13 +40,24 @@ def create_app() -> FastAPI:
     async def health() -> dict:
         return {"status": "ok", "llm_mode": settings.llm_mode, "model": settings.claude_model}
 
+    app.include_router(accounts.router)
     app.include_router(admin.router)
     app.include_router(chat.router)
     app.include_router(repos.router)
     app.include_router(tickets.router)
     app.include_router(github.router)
+    _mount_mcp(app)
     _mount_demo_store(app)
     return app
+
+
+def _mount_mcp(app: FastAPI) -> None:
+    """Streamable HTTP MCP endpoint at /mcp (stateless: fine behind Render's proxy and free-tier restarts).
+    Our per-repository keys are the access control, so the SDK's localhost-only Host check is turned off."""
+    from app.mcp_server import mcp
+
+    mcp_app = mcp.streamable_http_app(streamable_http_path="/mcp", stateless_http=True, host="0.0.0.0")
+    app.router.routes.extend(mcp_app.routes)
 
 
 def _mount_demo_store(app: FastAPI) -> None:
