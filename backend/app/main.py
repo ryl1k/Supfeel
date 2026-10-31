@@ -1,3 +1,4 @@
+import sys
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -32,7 +33,20 @@ def create_app() -> FastAPI:
 
     app.include_router(admin.router)
     app.include_router(chat.router)
+    _mount_demo_store(app)
     return app
+
+
+def _mount_demo_store(app: FastAPI) -> None:
+    settings = get_settings()
+    root = settings.demo_store_dir
+    if not settings.mount_demo_store or not (root / "slice_api").is_dir():
+        return
+    if str(root) not in sys.path:
+        sys.path.insert(0, str(root))
+    from slice_api.main import app as slice_app
+
+    app.mount("/demo-store", slice_app)
 
 
 app = create_app()
