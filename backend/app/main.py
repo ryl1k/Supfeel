@@ -5,7 +5,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api import accounts, admin, chat, github, repos, tickets
+from app.api import accounts, admin, chat, dashboard, github, repos, tickets
 from app.config import get_settings
 from app.db.session import dispose_engine
 
@@ -41,6 +41,7 @@ def create_app() -> FastAPI:
         return {"status": "ok", "llm_mode": settings.llm_mode, "model": settings.claude_model}
 
     app.include_router(accounts.router)
+    app.include_router(dashboard.router)
     app.include_router(admin.router)
     app.include_router(chat.router)
     app.include_router(repos.router)

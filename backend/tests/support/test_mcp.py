@@ -146,3 +146,23 @@ async def test_other_products_tickets_are_invisible(workspace):
     async with client(key) as c:
         res = await c.call_tool("get_ticket", {"ticket_id": "T-NOPE00"})
         assert res.is_error
+
+
+async def test_dashboard_reflects_onboarding_and_tickets(workspace):
+    import httpx
+
+    account, key = workspace
+    async with session_scope() as s:
+        from sqlalchemy import select
+
+        from app.db.models import User
+
+        user = await s.scalar(select(User).where(User.account_id == account))
+    token = await auth._new_session(user.id)
+    c = TestClient(app)
+    d = c.get("/api/dashboard", headers={"Authorization": f"Bearer {token}"}).json()
+    assert (
+        d["onboarding"]["repo_ready"] and d["onboarding"]["key_created"] and d["onboarding"]["api_connected"]
+    )
+    assert len(d["daily"]) == 14 and d["billing"]["balance_cents"] <= billing.FREE_GRANT_CENTS
+    assert c.get("/api/dashboard").status_code == 401
