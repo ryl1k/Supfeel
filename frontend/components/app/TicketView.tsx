@@ -188,7 +188,9 @@ function Conversation({ t }: { t: TicketDetail }) {
         {t.messages.map((m, i) => (
           <li key={i} className={cx("flex", m.role === "customer" ? "justify-end" : "justify-start")}>
             <div className={cx("max-w-[85%] rounded-2xl border px-4 py-2.5 text-[14px]", m.role === "customer" ? "border-line bg-bubble" : "border-indigo-400/30 bg-sapphire-600/15")}>
-              <div className="mb-0.5 text-[11px] uppercase tracking-wider text-text-300">{m.role === "customer" ? t.customer.name || "Customer" : "Supfeel"}</div>
+              <div className="mb-0.5 text-[11px] uppercase tracking-wider text-text-300">
+                {m.role === "customer" ? t.customer.name || "Customer" : m.role === "frontline" ? "First-line agent" : "Supfeel"}
+              </div>
               <Markdown text={m.content} className="text-text-100" />
             </div>
           </li>
@@ -218,6 +220,7 @@ export function TicketView() {
           <span className="font-mono">{t.id}</span>
           <StatusBadge status={t.status} />
           <CategoryBadge category={t.category} />
+          {t.channel === "mcp" ? <Badge tone="info">via MCP</Badge> : null}
           {t.confidence !== null ? <Badge>triage {Math.round((t.confidence ?? 0) * 100)}%</Badge> : null}
           {t.learned ? <Badge tone="success">added to knowledge</Badge> : null}
           {Object.entries(brain).map(([node, b]) => (

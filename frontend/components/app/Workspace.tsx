@@ -5,7 +5,7 @@ import { type FormEvent, useState } from "react";
 
 import { ArrowRight } from "@/components/ui/icons";
 import { usePoll } from "@/lib/usePoll";
-import { api, type GithubStatus, type Repo, setAdminToken, useAdminTokenField } from "@/lib/workspace";
+import { api, type GithubStatus, type Repo } from "@/lib/workspace";
 
 import { Badge, Button, Card, CategoryBadge, Empty, ErrorNote, Input, Spinner, StatusBadge, timeAgo } from "./ui";
 
@@ -67,16 +67,13 @@ function RepoCard({ repo }: { repo: Repo }) {
 function ImportCard({ status, onImported }: { status: GithubStatus | null; onImported: (id: string) => void }) {
   const [repo, setRepo] = useState("");
   const [local, setLocal] = useState("");
-  const [token, setToken] = useAdminTokenField();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const needsToken = status ? !status.open_import : true;
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
     setBusy(true);
     setError(null);
-    if (needsToken) setAdminToken(token);
     try {
       const res = await api.importRepo(local ? { local_path: local } : { repo });
       setRepo("");
@@ -96,15 +93,12 @@ function ImportCard({ status, onImported }: { status: GithubStatus | null; onImp
         {status?.allow_local_repos ? (
           <Input placeholder="…or a local path (dev only)" value={local} onChange={(e) => setLocal(e.target.value)} aria-label="Local path" />
         ) : null}
-        {needsToken ? (
-          <Input type="password" placeholder="Admin token" value={token} onChange={(e) => setToken(e.target.value)} aria-label="Admin token" />
-        ) : null}
         {error ? <ErrorNote>{error}</ErrorNote> : null}
         <div className="flex flex-wrap items-center gap-3">
           <Button type="submit" disabled={busy || (!repo.trim() && !local.trim())}>
             {busy ? <Spinner /> : null} Import and index
           </Button>
-          <span className="text-[12px] text-text-300">We index code, docs and API specs, then explain every module.</span>
+          <span className="text-[12px] text-text-300">We index code, docs and API specs, then explain every module ($0.10 per index run).</span>
         </div>
       </form>
     </Card>
@@ -200,6 +194,7 @@ export function TicketList({ tickets, loading }: { tickets: import("@/lib/worksp
             <span className="w-24 shrink-0 font-mono text-[12px] text-text-300">{t.id}</span>
             <span className="min-w-0 flex-1 truncate text-[14px] text-text-100">{t.subject || "(no subject yet)"}</span>
             <span className="flex flex-wrap items-center gap-1.5">
+              {t.channel === "mcp" ? <Badge tone="info">MCP</Badge> : null}
               <CategoryBadge category={t.category} />
               <StatusBadge status={t.status} />
               {t.learned ? <Badge tone="success">learned</Badge> : null}

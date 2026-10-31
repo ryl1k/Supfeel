@@ -6,13 +6,14 @@ import { type FormEvent, useEffect, useState } from "react";
 
 import { ArrowRight, Refresh } from "@/components/ui/icons";
 import { usePoll } from "@/lib/usePoll";
-import { type AskAnswer, api, type Repo, type RepoDetail, setAdminToken, useAdminTokenField, type Trace } from "@/lib/workspace";
+import { type AskAnswer, api, type Repo, type RepoDetail, type Trace } from "@/lib/workspace";
 
+import { ConnectPanel } from "./ConnectPanel";
 import { TraceView } from "./TraceView";
 import { Badge, Button, Card, Empty, ErrorNote, Input, Markdown, Spinner, Stat, StatusBadge, Tabs, timeAgo, usd } from "./ui";
 import { JobProgress, TicketList } from "./Workspace";
 
-type Tab = "overview" | "modules" | "ask" | "api" | "tickets" | "index" | "settings";
+type Tab = "connect" | "overview" | "modules" | "ask" | "api" | "tickets" | "index" | "settings";
 
 function Overview({ repo }: { repo: RepoDetail }) {
   const chunks = repo.stats.chunks ?? {};
@@ -200,11 +201,9 @@ function Settings({ repo, onSaved }: { repo: Repo; onSaved: () => void }) {
     api_token: "",
     auto_fix: repo.settings.auto_fix !== false,
   });
-  const [token, setToken] = useAdminTokenField();
   const [msg, setMsg] = useState<string | null>(null);
   const save = async (e: FormEvent) => {
     e.preventDefault();
-    setAdminToken(token);
     setMsg(null);
     try {
       const body: Record<string, unknown> = { ...form };
@@ -232,10 +231,6 @@ function Settings({ repo, onSaved }: { repo: Repo; onSaved: () => void }) {
         <label className="flex items-center gap-3 text-[14px] text-text-300 md:col-span-2">
           <input type="checkbox" checked={form.auto_fix} onChange={(e) => setForm({ ...form, auto_fix: e.target.checked })} className="h-4 w-4 accent-[var(--sapphire-500)]" />
           Open fix pull requests automatically for confirmed bugs
-        </label>
-        <label className="block space-y-1.5 md:col-span-2">
-          <span className="text-[13px] text-lavender-200">Admin token</span>
-          <Input type="password" value={token} onChange={(e) => setToken(e.target.value)} placeholder="Required to change settings" />
         </label>
         <div className="flex items-center gap-3 md:col-span-2">
           <Button type="submit">Save settings</Button>
@@ -265,7 +260,7 @@ export function RepoView() {
       await api.reindex(r.id);
       await repo.refresh();
     } catch (err) {
-      setError(err instanceof Error ? `${err.message} (set the admin token in Settings)` : "Failed");
+      setError(err instanceof Error ? err.message : "Failed");
     } finally {
       setReindexing(false);
     }
@@ -304,7 +299,7 @@ export function RepoView() {
             <Refresh /> Re-index
           </Button>
           <Link href={`/support/${r.id}`} className="btn-primary inline-flex items-center gap-2 rounded-full px-4 py-2 text-[14px] font-medium text-white">
-            Customer support page <ArrowRight />
+            Playground <ArrowRight />
           </Link>
         </div>
       </div>
@@ -315,6 +310,7 @@ export function RepoView() {
         onChange={setTab}
         tabs={[
           { id: "overview", label: "Overview" },
+          { id: "connect", label: "Connect (MCP)" },
           { id: "modules", label: `Modules${r.modules.length ? ` (${r.modules.length})` : ""}` },
           { id: "ask", label: "Ask" },
           { id: "api", label: `API actions${r.api_operations.length ? ` (${r.api_operations.length})` : ""}` },
@@ -325,6 +321,7 @@ export function RepoView() {
       />
 
       {tab === "overview" ? <Overview repo={r} /> : null}
+      {tab === "connect" ? <ConnectPanel repo={r} /> : null}
       {tab === "modules" ? <Modules repo={r} /> : null}
       {tab === "ask" ? <Ask repo={r} /> : null}
       {tab === "api" ? <ApiOps repo={r} /> : null}
