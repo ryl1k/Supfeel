@@ -22,7 +22,7 @@ from app.support import assist, ci, fixer
 from app.support import context as ctxmod
 from app.support.notify import notify
 from app.support.state import TicketState
-from app.support.triage import handoff_block, triage
+from app.support.triage import customer_block, handoff_block, triage
 
 ROUTES = {
     "bug": "fix",
@@ -84,7 +84,12 @@ async def context_node(state: TicketState) -> dict[str, Any]:
 async def triage_node(state: TicketState) -> dict[str, Any]:
     step("triage", "running", "Working out what kind of problem this is")
     t, used = await triage(
-        state["message"], state.get("history", []), state["ctx"], state["ticket_id"], state.get("handoff")
+        state["message"],
+        state.get("history", []),
+        state["ctx"],
+        state["ticket_id"],
+        state.get("handoff"),
+        state.get("customer"),
     )
     route = "ask" if t.needs_clarification and t.clarifying_question else ROUTES[t.category]
     if route != "ask" and t.search_queries and used == "llm":
@@ -449,7 +454,7 @@ def rules_reply(state: TicketState) -> str:
 async def respond_node(state: TicketState) -> dict[str, Any]:
     step("respond", "running", "Writing reply")
     user = (
-        f"Business: {state.get('business') or 'the product'}\n{handoff_block(state.get('handoff'))}"
+        f"Business: {state.get('business') or 'the product'}\n{customer_block(state.get('customer'))}{handoff_block(state.get('handoff'))}"
         f"Conversation so far:\n" + "\n".join(f"{m['role']}: {m['content']}" for m in state.get("history", [])[-6:]) +
         f"\n\nCustomer's latest message:\n<message>\n{state.get('message', '')}\n</message>\n\n"
         f"What happened (internal):\n{json.dumps(_facts(state), default=str)[:6000]}\n\n"

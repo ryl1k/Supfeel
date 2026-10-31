@@ -168,3 +168,36 @@ async def test_dashboard_reflects_onboarding_and_tickets(workspace):
         )
         assert len(d["daily"]) == 14 and d["billing"]["balance_cents"] <= billing.FREE_GRANT_CENTS
         assert (await c.get("/api/dashboard")).status_code == 401
+
+
+async def test_two_workspaces_can_connect_the_same_github_repo(monkeypatch):
+    import httpx
+
+    from app.api import repos as repos_api
+
+    class FakeGH:
+        auth, installation_id = "anonymous", None
+
+        async def get_repo(self, full_name):
+            return {"full_name": "Acme/Shop", "default_branch": "main"}
+
+    async def fake_client(full_name, installation_id=None):
+        return FakeGH()
+
+    async def fake_start(repo_id, trigger="manual", background=True):
+        return "job_test"
+
+    monkeypatch.setattr(repos_api, "client_for", fake_client)
+    monkeypatch.setattr(repos_api, "start_job", fake_start)
+    ids = []
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as c:
+        for n in range(2):
+            token, _ = await auth.signup(f"ws{n}-{uuid.uuid4().hex[:6]}@example.com", "W", "longenough1")
+            r = await c.post(
+                "/api/repos", json={"repo": "acme/shop"}, headers={"Authorization": f"Bearer {token}"}
+            )
+            assert r.status_code == 201, r.text
+            ids.append(r.json()["id"])
+            listed = (await c.get("/api/repos", headers={"Authorization": f"Bearer {token}"})).json()
+            assert [x["id"] for x in listed] == [ids[-1]]  # each workspace sees only its own connection
+    assert ids[0] != ids[1] and all(i.startswith("acme__shop__") for i in ids)

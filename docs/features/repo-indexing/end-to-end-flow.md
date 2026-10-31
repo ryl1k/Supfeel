@@ -5,8 +5,8 @@
 **Import** (`POST /api/repos`, body `{repo | local_path, branch?}`):
 1. Check `MAX_REPOS` (counted per account). Local path: needs `ALLOW_LOCAL_REPOS` and admin or `OPEN_IMPORT` (403). Parse `owner/name` or a github.com URL; `client_for()` picks App → PAT → anonymous
    credentials; `get_repo` resolves the canonical name and default branch (404/502 with a hint for private repos).
-2. Repo id from `repo_id_for()`; local ids get the `__<acct6>` suffix for a workspace. 409 if the id belongs to
-   another workspace. Charge `index` (402 on `PaymentRequired`), insert the `repos` row with `account_id` if new,
+2. Repo id from `repo_id_for()` plus the workspace's `__<acct6>` suffix (GitHub and local alike), so each workspace
+   has its own connection to a repo. Charge `index` (402 on `PaymentRequired`), insert the `repos` row with `account_id` if new,
    then `indexer.start_job(trigger="import")`.
 
 **Job** (`start_job` → background `run_job`, trace "index repository"):

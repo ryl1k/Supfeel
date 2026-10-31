@@ -224,11 +224,14 @@ def test_webhook_signature_and_push(monkeypatch):
         calls.append((repo_id, trigger))
         return "job_x"
 
-    async def fake_repo(full_name):
-        return Repo(id="owner__app", full_name="owner/app", default_branch="main", source="github")
+    async def fake_repos(full_name):
+        return [
+            Repo(id="owner__app__aaaaaa", full_name="owner/app", default_branch="main", source="github"),
+            Repo(id="owner__app__bbbbbb", full_name="owner/app", default_branch="main", source="github"),
+        ]
 
     monkeypatch.setattr(gh_api, "start_job", fake_start)
-    monkeypatch.setattr(gh_api, "_repo_for", fake_repo)
+    monkeypatch.setattr(gh_api, "_repos_for", fake_repos)
     client = TestClient(app)
     body = {"ref": "refs/heads/main", "repository": {"full_name": "owner/app"}}
     raw, sig = _signed(body, "wrong")
@@ -242,10 +245,10 @@ def test_webhook_signature_and_push(monkeypatch):
     r = client.post(
         "/api/github/webhook", content=raw, headers={"x-hub-signature-256": sig, "x-github-event": "push"}
     )
-    assert r.status_code == 202 and r.json()["reindex"] == "job_x"
-    assert calls == [("owner__app", "push")]
+    assert r.status_code == 202 and r.json()["reindex"] == ["job_x", "job_x"]
+    assert calls == [("owner__app__aaaaaa", "push"), ("owner__app__bbbbbb", "push")]  # every workspace's copy
     raw, sig = _signed({**body, "ref": "refs/heads/feature"}, "s3cret")
     client.post(
         "/api/github/webhook", content=raw, headers={"x-hub-signature-256": sig, "x-github-event": "push"}
     )
-    assert len(calls) == 1
+    assert len(calls) == 2

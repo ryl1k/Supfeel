@@ -110,12 +110,15 @@ async def import_repo(req: ImportRequest, p: CurrentPrincipal) -> dict:
         raise HTTPException(status_code=422, detail="give repo or local_path")
 
     rid = repo_id_for(full_name, source)
-    if p.account_id:  # one workspace per repository id; local imports are namespaced per workspace
-        rid = rid if source == "github" else f"{rid}__{p.account_id[-6:]}"
+    if p.account_id:
+        # Every workspace gets its own connection (index, tickets, keys) to a repository, so several teams (or every
+        # judge trying the public demo) can connect the same repo. Re-indexing a known repo is nearly free: embeddings
+        # and Claude summaries are cached by content.
+        rid = f"{rid}__{p.account_id[-6:]}"
     async with session_scope() as s:
         repo = await s.get(Repo, rid)
         if repo is not None and repo.account_id != p.account_id and not p.is_admin:
-            raise HTTPException(status_code=409, detail="this repository is connected to another workspace")
+            raise HTTPException(status_code=409, detail="repository id collision; try again")
     try:
         await billing.charge(p.account_id, "index", repo_id=rid, note=f"Import {full_name}")
     except billing.PaymentRequired as e:

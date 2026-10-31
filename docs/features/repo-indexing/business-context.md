@@ -4,7 +4,8 @@
 
 - Who: the signed-in workspace owner. Repos belong to an account (`repos.account_id`); every per-repo route
   goes through `auth.repo_for` (404 for another workspace's repo). `x-admin-token` is an operator override.
-- A GitHub repo can belong to one workspace only (409 "connected to another workspace").
+- Every workspace gets its own connection to a repository (id `owner__name__<account suffix>`), so several teams, or
+  every judge trying the public demo, can connect the same repo. Push webhooks re-index every connection.
 - Billing: import and manual re-index are charged `index` ($0.10), `/ask` is charged `ask` ($0.02), up front
   (402 when out of credit or over the monthly limit). Push-triggered re-index is free.
 - Limits protect the budget and the 512 MB Render instance: `REPO_MAX_FILES` (2000), `REPO_MAX_FILE_BYTES`
