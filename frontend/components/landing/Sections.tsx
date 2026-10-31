@@ -5,34 +5,34 @@ import { ArrowRight, Bolt, Chat, Search, Shield } from "@/components/ui/icons";
 
 const FEATURES = [
   {
-    icon: <Chat />,
-    title: "Understands the real problem",
-    body: "“They’re uncomfortable” becomes “too narrow, a wide fit fixes it”. Supfeel asks one sharp question, never a form.",
+    icon: <Search />,
+    title: "Learns your product",
+    body: "Import a GitHub repo. Supfeel indexes code, docs and API specs, explains every module, and re-indexes on every push.",
   },
   {
-    icon: <Search />,
-    title: "Investigates on its own",
-    body: "Orders, tracking, payments and memberships are checked automatically. No order numbers, no copy-pasting.",
+    icon: <Chat />,
+    title: "Explains what customers misread",
+    body: "Fees, limits, rules: answered from your own code and docs, so the answer matches how the product really behaves.",
   },
   {
     icon: <Bolt />,
-    title: "Takes real action",
-    body: "Exchanges, refunds, reships, address changes, pauses. Executed through business tools within written policy.",
+    title: "Does it for them, or fixes it",
+    body: "Customer can't order? Supfeel places it through your API. Real bug? It opens a pull request with the fix and a test.",
   },
   {
     icon: <Shield />,
-    title: "Verifies the fix",
-    body: "Every action is re-checked against live system state before Supfeel says it’s done. You see the receipts.",
+    title: "Verified and transparent",
+    body: "Actions are read back from your API, fixes are proven by your CI, and every call is traced in a graph you can inspect.",
   },
 ];
 
 const STEPS = [
-  ["Understand", "Identify the underlying problem behind the message."],
-  ["Investigate", "Gather facts from connected business systems."],
-  ["Check policy", "Ground the decision in the company knowledge base."],
-  ["Plan", "Choose the best fix and ask before anything sensitive."],
-  ["Act", "Execute through tools: refunds, exchanges, reships…"],
-  ["Verify", "Read back system state to confirm it actually worked."],
+  ["Import", "Connect a repository through the GitHub App."],
+  ["Index and explain", "Code, docs and API become a vector knowledge base."],
+  ["Triage", "Each message becomes a ticket: bug, question or task."],
+  ["Resolve", "Explain, act through your API, or ship a fix PR."],
+  ["Verify", "Read-back checks and CI prove it actually worked."],
+  ["Learn", "Resolved tickets and new pushes make it smarter."],
 ];
 
 export function Features() {
@@ -89,21 +89,22 @@ export function About() {
             Support that takes responsibility
           </h2>
           <p className="mt-5 text-[16px] leading-relaxed text-text-300">
-            Traditional support is reactive: customers explain, receive generic answers and get bounced between
-            departments. Supfeel owns the outcome. It reasons with Claude, orchestrates its work as a LangGraph state
-            machine, grounds every decision in written policy, and never claims a fix it hasn&apos;t verified.
+            Traditional support bounces customers between an FAQ, an agent and an engineering backlog. Supfeel has
+            read your codebase, so it knows when the customer misunderstood, when it can simply do the thing for them,
+            and when the product is broken, and then it fixes the code. It reasons with Claude, runs as a LangGraph
+            state machine, and never claims a fix it hasn&apos;t verified.
           </p>
           <p className="mt-4 text-[16px] leading-relaxed text-text-300">
-            The demo runs against Velora, a fictional footwear store with real (mock) orders, payments and
-            memberships. Pick a customer and try to break it.
+            The demo runs against Slice, a small pizza-delivery API with a couple of real bugs. Import it, open
+            its support page, and watch a customer message turn into a verified pull request.
           </p>
         </div>
         <ul className="grid content-start gap-3 text-[15px]">
           {[
-            ["Policy-grounded", "Decisions cite the knowledge base"],
-            ["Human in the loop", "Sensitive actions need your OK"],
-            ["Safe by design", "Over $200 goes to a specialist"],
-            ["Transparent", "Every step and check is visible"],
+            ["Grounded in code", "Answers cite your repo, not a guess"],
+            ["Human in the loop", "Writes need the customer's OK; PRs need review"],
+            ["Safe by design", "Scoped to the customer's own account"],
+            ["Transparent", "Every step, call and cost is traced"],
           ].map(([t, d]) => (
             <li key={t} className="rounded-[16px] border border-line bg-panel-strong px-5 py-4">
               <span className="font-medium">{t}</span>
@@ -123,10 +124,10 @@ export function FinalCta() {
         See it <span className="text-gradient italic">solve</span>, not just reply.
       </h2>
       <Link
-        href="/chat"
+        href="/app"
         className="btn-primary mt-8 inline-flex items-center gap-3 rounded-full px-10 py-4 text-[18px] font-medium"
       >
-        Start chatting <ArrowRight className="h-5 w-5" />
+        Open the workspace <ArrowRight className="h-5 w-5" />
       </Link>
     </section>
   );

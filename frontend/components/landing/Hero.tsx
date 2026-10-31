@@ -23,12 +23,17 @@ export function Hero() {
           <br className="hidden sm:block" /> and get real solutions{" "}
           <span className="text-text-300">— not just answers.</span>
         </p>
-        <Link
-          href="/chat"
-          className="btn-primary mt-12 inline-flex items-center gap-3 rounded-full px-10 py-4 text-[19px] font-medium"
-        >
-          Start chatting <ArrowRight className="h-5 w-5" />
-        </Link>
+        <div className="mt-12 flex flex-wrap items-center gap-4">
+          <Link
+            href="/app"
+            className="btn-primary inline-flex items-center gap-3 rounded-full px-10 py-4 text-[19px] font-medium"
+          >
+            Connect your repo <ArrowRight className="h-5 w-5" />
+          </Link>
+          <Link href="/chat" className="text-[16px] text-lavender-200 transition-colors hover:text-white">
+            or try the store demo
+          </Link>
+        </div>
       </div>
       <div className="flex justify-center lg:justify-end">
         <ChatPreview />
