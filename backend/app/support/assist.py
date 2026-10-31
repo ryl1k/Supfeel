@@ -180,7 +180,11 @@ async def verify(
                                     "detail": f"stored: {back['data'][k]}",
                                 }
                             )
-        ok = all(c["ok"] for c in checks) and len(checks) > 1
+        if result["ok"] and len(checks) == 1:
+            checks.append(
+                {"name": "No read endpoint to double-check", "ok": True, "detail": "accepted by the API only"}
+            )
+        ok = all(c["ok"] for c in checks)
         sp.set(ok=ok, checks=checks)
         return {"ok": ok, "checks": checks}
 
@@ -237,7 +241,11 @@ async def _read(repo: Repo, ops: list[dict], operation_id: str, args: dict, cust
     op = _op(ops, operation_id)
     if op["method"] != "GET":
         raise ActionBlocked("only GET operations can be used for lookups")
-    return await call_api(repo, op, scope_to_customer(op, args, customer_ref))
+    res = await call_api(repo, op, scope_to_customer(op, args, customer_ref))
+    owner = _owner(res["data"]) if res["ok"] else None
+    if owner is not None and owner != str(customer_ref):
+        raise ActionBlocked("that record belongs to a different customer")
+    return res
 
 
 async def plan_llm(repo: Repo, ctx: dict, ticket: dict, message: str, history: list[dict]) -> dict[str, Any]:

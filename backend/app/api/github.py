@@ -61,9 +61,17 @@ async def webhook(request: Request) -> dict:
 
     if event in ("installation", "installation_repositories"):
         inst_id = (payload.get("installation") or {}).get("id")
-        repos = payload.get("repositories") or payload.get("repositories_added") or []
         async with session_scope() as s:
-            for r in repos:
+            if payload.get("action") in ("deleted", "suspend"):
+                await s.execute(
+                    update(Repo).where(Repo.installation_id == inst_id).values(installation_id=None)
+                )
+                return {"ok": True, "installation": None}
+            for r in payload.get("repositories_removed") or []:
+                await s.execute(
+                    update(Repo).where(Repo.full_name.ilike(r["full_name"])).values(installation_id=None)
+                )
+            for r in payload.get("repositories") or payload.get("repositories_added") or []:
                 await s.execute(
                     update(Repo).where(Repo.full_name.ilike(r["full_name"])).values(installation_id=inst_id)
                 )

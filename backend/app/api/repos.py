@@ -171,6 +171,17 @@ async def get_repo(repo_id: str) -> dict:
     }
 
 
+@router.delete("/repos/{repo_id}", dependencies=[Depends(require_admin)])
+async def delete_repo(repo_id: str) -> dict:
+    """Removes the repo and everything derived from it (files, chunks, docs, jobs, tickets, notifications)."""
+    async with session_scope() as s:
+        r = await s.get(Repo, repo_id)
+        if r is None:
+            raise HTTPException(status_code=404, detail="unknown repository")
+        await s.delete(r)
+    return {"deleted": repo_id}
+
+
 @router.get("/repos/{repo_id}/jobs")
 async def list_jobs(repo_id: str, limit: int = 20) -> list[dict]:
     async with session_scope() as s:

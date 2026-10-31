@@ -10,7 +10,7 @@ import { api, type Fix, type Notification, type TicketAction, type TicketDetail 
 import { TraceView } from "./TraceView";
 import { Badge, Card, CategoryBadge, cx, Empty, ErrorNote, Markdown, Spinner, StatusBadge, timeAgo } from "./ui";
 
-const LIVE = new Set(["fix_in_review", "awaiting_confirmation", "open"]);
+const LIVE = new Set(["fix_in_review", "fix_verified", "awaiting_confirmation", "open"]);
 
 export function DiffView({ diff }: { diff: string }) {
   return (

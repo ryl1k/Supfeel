@@ -192,6 +192,9 @@ async def index_repo(repo_id: str, job_id: str) -> dict[str, Any]:
                     )
                 )
                 await s.execute(delete(RepoFile).where(RepoFile.repo_id == repo_id))
+                # Docs are regenerated too, so their summary chunks come back with the new embedding model
+                # (identical Claude requests are served from the request cache, so this costs nothing twice).
+                await s.execute(delete(RepoDoc).where(RepoDoc.repo_id == repo_id))
             for p in changed:
                 s.add(
                     RepoFile(
@@ -225,6 +228,7 @@ async def index_repo(repo_id: str, job_id: str) -> dict[str, Any]:
                     )  # fmt: skip
             await _progress(job_id, chunks_done=min(i + INSERT_BATCH, len(chunks)))
 
+    await _reembed_tickets(repo_id, model)
     ops = await _index_api(repo, snap.files, model)
     await _progress(job_id, phase="explain")
     modules_done = await _explain(repo, snap.files, outlines, job_id, model)
@@ -270,6 +274,25 @@ async def index_repo(repo_id: str, job_id: str) -> dict[str, Any]:
         "sha": snap.sha, "files": len(snap.files), "changed": len(changed), "deleted": len(deleted),
         "chunks_embedded": len(chunks), "api_operations": ops, **modules_done,
     }  # fmt: skip
+
+
+async def _reembed_tickets(repo_id: str, model: str) -> None:
+    """Learned tickets survive an embedding-model switch: re-embed them with the active model."""
+    async with session_scope() as s:
+        old = (
+            await s.scalars(
+                select(RepoChunk).where(
+                    RepoChunk.repo_id == repo_id,
+                    RepoChunk.kind == "ticket",
+                    RepoChunk.embedding_model != model,
+                )
+            )
+        ).all()
+        if not old:
+            return
+        vectors = await embed([c.text for c in old], node="ticket_learn")
+        for c, v in zip(old, vectors, strict=True):
+            c.embedding, c.embedding_model, c.content_hash = v, model, _sha(model + c.text)
 
 
 async def _index_api(repo: Repo, files: dict[str, str], model: str) -> int:

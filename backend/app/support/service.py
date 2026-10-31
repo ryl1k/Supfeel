@@ -22,11 +22,16 @@ from app.support.learn import LEARNABLE, learn
 from app.support.notify import notify
 
 log = logging.getLogger(__name__)
-YES = re.compile(
-    r"^\s*(yes|yep|yeah|sure|ok|okay|go ahead|please do|do it|approve|confirm|sounds good|that helps|thanks|thank you|perfect|great)\b",
+# Approving a write must be explicit; "thanks"/"great" only close an answered ticket.
+APPROVE = re.compile(
+    r"^\s*(yes|yep|yeah|sure|ok|okay|go ahead|please do|do it|approve|confirm|sounds good)\b[\s.!]*(please)?[\s.!]*$",
     re.I,
 )
+SATISFIED = re.compile(
+    r"^\s*(yes|yep|yeah|ok|okay|thanks|thank you|perfect|great|that helps|got it|makes sense)\b", re.I
+)
 NO = re.compile(r"^\s*(no|nope|don't|do not|stop|decline|not now|that doesn'?t help|still)\b", re.I)
+HEDGE = re.compile(r"\b(but|don'?t|do not|wait|instead|actually|not)\b", re.I)
 MAX_STEPS = 14
 _tasks: set[asyncio.Task] = set()
 
@@ -208,11 +213,13 @@ async def post_message(ticket_id: str, message: str) -> AsyncIterator[dict[str, 
     await _add_message(ticket_id, "customer", message)
     yield {"event": "ticket", "data": {"ticket_id": t.id}}
 
-    if t.status == "awaiting_confirmation" and (YES.match(message) or NO.match(message)):
-        async for ev in _confirm(t, business, bool(YES.match(message)), history):
+    if t.status == "awaiting_confirmation" and (
+        APPROVE.match(message) or (NO.match(message) and len(message) < 40)
+    ):
+        async for ev in _confirm(t, business, bool(APPROVE.match(message)), history):
             yield ev
         return
-    if t.status == "answered" and YES.match(message):
+    if t.status == "answered" and SATISFIED.match(message) and not HEDGE.search(message):
         async for ev in _close_answered(t, resolved=True):
             yield ev
         return

@@ -193,7 +193,7 @@ async def load_trace(trace_id: str) -> dict[str, Any]:
         k["duration_ms"] += sp["duration_ms"]
         k["cost_usd"] = round(k["cost_usd"] + sp["cost_usd"], 6)
     tokens = {
-        key: sum(int(sp["attributes"].get(key, 0) or 0) for sp in spans)
+        key: sum(int(sp["attributes"].get(key, 0) or 0) for sp in spans if sp["kind"] == "llm")
         for key in ("input_tokens", "output_tokens", "cache_read_tokens", "cache_write_tokens")
     }
     return {

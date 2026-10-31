@@ -6,6 +6,7 @@ tell the customer the fix is live and feed the ticket into learning.
 """
 
 import asyncio
+import contextvars
 import logging
 
 from sqlalchemy import select
@@ -89,8 +90,12 @@ async def refresh(ticket_id: str) -> str | None:
     return ci["state"]
 
 
+NO_CI_POLLS = 6  # ≈ 2 minutes without any check run → the repo has no CI for this branch
+
+
 async def _poll(ticket_id: str) -> None:
     settings = get_settings()
+    state, none_seen = None, 0
     for _ in range(settings.ci_poll_max):
         await asyncio.sleep(settings.ci_poll_seconds)
         try:
@@ -100,12 +105,49 @@ async def _poll(ticket_id: str) -> None:
             continue
         if state in ("success", "failure", None):
             return
+        none_seen = none_seen + 1 if state == "none" else 0
+        if none_seen >= NO_CI_POLLS:
+            break
+    await _unverified(
+        ticket_id, "no CI checks ran on the fix branch" if state == "none" else "CI did not finish in time"
+    )
+
+
+async def _unverified(ticket_id: str, reason: str) -> None:
+    """CI never produced a verdict: say so plainly; the PR still waits for human review."""
+    loaded = await _load(ticket_id)
+    if loaded is None:
+        return
+    t, repo = loaded
+    fix = dict(t.fix or {})
+    fix["ci"] = {**(fix.get("ci") or {}), "state": "none", "note": reason}
+    async with session_scope() as s:
+        (await s.get(Ticket, ticket_id)).fix = fix
+    await notify(
+        repo.id,
+        "ci_missing",
+        f"Fix for {t.id} is unverified: {reason}",
+        "Please review and test the PR manually.",
+        fix.get("pr_url"),
+        t.id,
+    )
 
 
 def track(ticket_id: str) -> None:
-    task = asyncio.create_task(_poll(ticket_id))
+    # A fresh context: the poller outlives the ticket turn, so its spans must not nest under a finished step.
+    task = asyncio.create_task(_poll(ticket_id), context=contextvars.Context())
     _tasks.add(task)
     task.add_done_callback(_tasks.discard)
+
+
+async def resume_tracking() -> int:
+    """On startup: pollers live in memory, so restart them for fixes still waiting on CI."""
+    async with session_scope() as s:
+        rows = (await s.scalars(select(Ticket).where(Ticket.status == "fix_in_review"))).all()
+        ids = [t.id for t in rows if ((t.fix or {}).get("ci") or {}).get("state") in (None, "pending")]
+    for ticket_id in ids:
+        track(ticket_id)
+    return len(ids)
 
 
 async def tickets_for(full_name: str, *, sha: str | None = None, branch: str | None = None) -> list[str]:

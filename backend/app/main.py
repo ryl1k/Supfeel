@@ -1,3 +1,4 @@
+import logging
 import sys
 from contextlib import asynccontextmanager
 
@@ -11,6 +12,12 @@ from app.db.session import dispose_engine
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    from app.support.ci import resume_tracking
+
+    try:
+        await resume_tracking()
+    except Exception:  # never block startup on this (e.g. DB not migrated yet)
+        logging.getLogger(__name__).exception("could not resume CI tracking")
     yield
     await dispose_engine()
 

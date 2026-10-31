@@ -21,7 +21,10 @@ from app.obs import trace
 from app.repos.github import GitHub, GitHubError, client_for
 from app.repos.search import search
 
-PROTECTED = re.compile(r"(^|/)(\.github/|\.env|.*\.(pem|key)$)")
+PROTECTED = re.compile(
+    r"(^|/)(\.github/|\.gitlab-ci\.yml$|\.circleci/|\.travis\.yml$|Jenkinsfile$|azure-pipelines\.yml$|"
+    r"bitbucket-pipelines\.yml$|\.env|.*\.(pem|key)$)"
+)
 
 FIX_SYSTEM = """You are a careful senior engineer fixing a bug reported through customer support.
 You work on the repository through tools. Workflow:
@@ -124,6 +127,8 @@ class Workspace:
             return "error: this path is protected"
         if await self.read(path) is not None:
             return "error: file exists; use edit_file"
+        if len(set(self.files) | {path}) > 5:
+            return "error: at most 5 files can be changed"
         self.originals.setdefault(path, None)
         self.files[path] = content
         self.edits.append({"path": path, "content": content})
@@ -178,7 +183,7 @@ async def run_agent(repo_id: str, ticket_id: str, report: str) -> FixResult:
     for turn in range(1, settings.fix_max_turns + 1):
         resp = await tool_turn(
             node="fix_agent", system=FIX_SYSTEM, messages=messages, tools=TOOLS, max_tokens=4000,
-            conversation_id=ticket_id, session_cap=settings.fix_cap_usd, effort="medium",
+            conversation_id=f"{ticket_id}:fix", session_cap=settings.fix_cap_usd, effort="medium",
         )  # fmt: skip
         messages.append({"role": "assistant", "content": resp["content"]})
         uses = [b for b in resp["content"] if b.get("type") == "tool_use"]
@@ -285,6 +290,10 @@ async def _reapply(gh: GitHub, full_name: str, branch: str, result: FixResult) -
     for e in result.edits:
         path = e["path"]
         if "content" in e:
+            if path not in fresh and await gh.get_file(full_name, path, branch) is not None:
+                raise GitHubError(
+                    409, f"{path} already exists on {branch} (not indexed); refusing to overwrite"
+                )
             fresh[path] = e["content"]
             continue
         if path not in fresh:

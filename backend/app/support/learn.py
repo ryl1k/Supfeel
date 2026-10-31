@@ -41,7 +41,7 @@ async def learn(ticket_id: str, messages: list[dict]) -> bool:
             return False
         text = ticket_text(t, messages)
         repo_id = t.repo_id
-    async with trace.span("learn from ticket", kind="step"):
+    async with trace.span("learn from ticket", kind="step", trace_id=ticket_id):
         model = active_model()
         [vec] = await embed([text], node="ticket_learn")
         async with session_scope() as s:

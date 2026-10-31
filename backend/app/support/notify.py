@@ -14,7 +14,7 @@ from app.obs import trace
 log = logging.getLogger(__name__)
 ICONS = {
     "bug_reported": "🐞", "pr_opened": "🛠️", "ci_passed": "✅", "ci_failed": "❌", "pr_merged": "🚀",
-    "escalation": "🙋", "feature_request": "💡", "action_taken": "⚡", "fix_failed": "⚠️",
+    "escalation": "🙋", "feature_request": "💡", "action_taken": "⚡", "ci_missing": "⚠️",
 }  # fmt: skip
 
 
