@@ -12,7 +12,7 @@ const LINKS = [
 
 export function Nav() {
   return (
-    <header className="relative z-10 mx-auto flex w-full max-w-[1320px] items-center justify-between px-4 py-6 sm:px-8 lg:py-9">
+    <header className="anim-fade-in relative z-10 mx-auto flex w-full max-w-[1320px] items-center justify-between px-4 py-6 sm:px-8 lg:py-9">
       <Link href="/" aria-label="Supfeel home">
         <Logo />
       </Link>

@@ -1,6 +1,8 @@
 import Link from "next/link";
 
 import { Logo } from "@/components/brand/Gem";
+import { EscalationFlow } from "@/components/landing/EscalationFlow";
+import { Reveal } from "@/components/motion/Reveal";
 import { ArrowRight, Bolt, Chat, Search, Shield } from "@/components/ui/icons";
 
 const FEATURES = [
@@ -42,9 +44,9 @@ export function Features() {
       <h2 className="mt-3 max-w-[760px] text-[34px] font-light leading-tight sm:text-[46px]">
         More than answers: <span className="text-gradient italic">real solutions.</span>
       </h2>
-      <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+      <Reveal stagger className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
         {FEATURES.map((f) => (
-          <div key={f.title} className="glass rounded-[24px] p-7">
+          <div key={f.title} className="glass lift rounded-[24px] p-7">
             <span className="flex h-11 w-11 items-center justify-center rounded-full border border-line text-lavender-300">
               {f.icon}
             </span>
@@ -52,7 +54,7 @@ export function Features() {
             <p className="mt-2 text-[15px] leading-relaxed text-text-300">{f.body}</p>
           </div>
         ))}
-      </div>
+      </Reveal>
     </section>
   );
 }
@@ -61,10 +63,13 @@ export function HowItWorks() {
   return (
     <section id="how-it-works" className="relative z-10 mx-auto w-full max-w-[1320px] scroll-mt-10 px-4 py-20 sm:px-8">
       <p className="text-[15px] uppercase tracking-[0.2em] text-lavender-300">How it works</p>
-      <h2 className="mt-3 text-[34px] font-light leading-tight sm:text-[46px]">From message to verified fix</h2>
-      <ol className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <h2 className="mt-3 text-[34px] font-light leading-tight sm:text-[46px]">From stuck customer to verified fix</h2>
+      <Reveal>
+        <EscalationFlow />
+      </Reveal>
+      <Reveal as="ol" stagger className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {STEPS.map(([title, body], i) => (
-          <li key={title} className="glass flex gap-5 rounded-[22px] p-6">
+          <li key={title} className="glass lift flex gap-5 rounded-[22px] p-6">
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-sapphire-600 text-[15px] font-semibold">
               {i + 1}
             </span>
@@ -74,7 +79,7 @@ export function HowItWorks() {
             </div>
           </li>
         ))}
-      </ol>
+      </Reveal>
     </section>
   );
 }
@@ -82,7 +87,7 @@ export function HowItWorks() {
 export function About() {
   return (
     <section id="about" className="relative z-10 mx-auto w-full max-w-[1320px] scroll-mt-10 px-4 py-20 sm:px-8">
-      <div className="glass grid gap-10 rounded-[28px] p-8 sm:p-12 lg:grid-cols-[1.3fr_1fr]">
+      <Reveal className="glass grid gap-10 rounded-[28px] p-8 sm:p-12 lg:grid-cols-[1.3fr_1fr]">
         <div>
           <p className="text-[15px] uppercase tracking-[0.2em] text-lavender-300">About</p>
           <h2 className="mt-3 text-[30px] font-light leading-tight sm:text-[40px]">
@@ -112,7 +117,7 @@ export function About() {
             </li>
           ))}
         </ul>
-      </div>
+      </Reveal>
     </section>
   );
 }
@@ -134,32 +139,32 @@ export function Pricing() {
       <p className="mt-4 max-w-[640px] text-[16px] text-text-300">
         Start with $5 of free credit. Top up when you need to, set a monthly spend limit (it resets on the 1st), or turn on auto-recharge.
       </p>
-      <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <Reveal stagger className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {PRICING.map(([name, price, body]) => (
-          <div key={name} className="glass rounded-[22px] p-6">
+          <div key={name} className="glass lift rounded-[22px] p-6">
             <div className="text-[15px] text-lavender-200">{name}</div>
             <div className="mt-2 text-[34px] font-semibold">{price}</div>
             <p className="mt-2 text-[14px] leading-relaxed text-text-300">{body}</p>
           </div>
         ))}
-      </div>
+      </Reveal>
     </section>
   );
 }
 
 export function FinalCta() {
   return (
-    <section className="relative z-10 mx-auto w-full max-w-[1320px] px-4 pb-24 pt-6 text-center sm:px-8">
+    <Reveal as="section" className="relative z-10 mx-auto w-full max-w-[1320px] px-4 pb-24 pt-6 text-center sm:px-8">
       <h2 className="text-[32px] font-light sm:text-[44px]">
         See it <span className="text-gradient italic">solve</span>, not just reply.
       </h2>
       <Link
         href="/signup"
-        className="btn-primary mt-8 inline-flex items-center gap-3 rounded-full px-10 py-4 text-[18px] font-medium"
+        className="btn-primary anim-pulse-cta mt-8 inline-flex items-center gap-3 rounded-full px-10 py-4 text-[18px] font-medium"
       >
         Get started free <ArrowRight className="h-5 w-5" />
       </Link>
-    </section>
+    </Reveal>
   );
 }
 

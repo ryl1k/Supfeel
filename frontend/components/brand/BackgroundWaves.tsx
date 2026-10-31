@@ -26,6 +26,7 @@ export function BackgroundWaves() {
             <feGaussianBlur stdDeviation="14" />
           </filter>
         </defs>
+        <g className="anim-drift">
         {/* top-right sweep */}
         <path d="M1040 -20 C 980 150, 1120 300, 1460 330 L 1460 -20 Z" fill="url(#w-top)" filter="url(#soft)" />
         {/* diagonal band through the chat window area */}
@@ -34,6 +35,8 @@ export function BackgroundWaves() {
           fill="url(#w-band)"
           filter="url(#soft)"
         />
+        </g>
+        <g className="anim-drift" style={{ animationDelay: "-9s", animationDuration: "24s" }}>
         {/* bottom wave */}
         <path
           d="M-40 1000 C 200 860, 460 780, 760 800 C 1040 820, 1240 720, 1460 640 L 1460 1000 Z"
@@ -46,6 +49,7 @@ export function BackgroundWaves() {
           fillOpacity="0.28"
           filter="url(#soft)"
         />
+        </g>
       </svg>
     </div>
   );
