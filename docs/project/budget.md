@@ -31,6 +31,19 @@ About 3 LLM calls per resolved issue (understand, plan, respond):
 
 So $45 of operational spend covers more than 1,000 full conversations.
 
+## Code-support estimates (Sprint 5, measured live 2026-10-31 on the Slice demo repo)
+
+| Operation | Claude calls | Measured |
+|---|---|---|
+| Index a repo (13 files, 5 modules) | 5 module summaries + 1 overview | $0.067 (re-index of unchanged repo: $0) |
+| Explanation ticket | triage + respond | ≈ $0.01–0.02 |
+| Assisted action ticket (+ confirm) | triage + plan tool loop + 2 replies | $0.035 |
+| Bug ticket with fix agent (patch) | triage + ~6-turn tool loop + respond | $0.036 |
+| Embeddings for a 50k-line repo | – | ≈ $0.02 (OpenAI) |
+
+Caps: `INDEX_CAP_USD` 2.00 per index job, `TICKET_CAP_USD` 0.40 per ticket, `FIX_CAP_USD` 1.50 per fix run,
+`REPO_MAX_FILES` 2000, `REPO_MAX_MODULES_SUMMARIZED` 30. A medium repo (≈ 30 modules) costs about $0.5 to index.
+
 ## Mandatory controls (implement in Sprint 1)
 
 1. **Central LLM client**. All Claude calls go through one module that:
@@ -58,3 +71,4 @@ Update after each sprint (from `GET /api/admin/usage`, which sums `llm_usage`).
 | 2 | 0.07 | 0.0001 | One live smoke run (4 turns) + one OpenAI KB ingest. Measured ≈ $0.017 per turn with caching |
 | 3 | 0.00 | 0.00 | UI built against LLM_MODE=mock |
 | 4 | 0.067 | 0.00 | Second live smoke run after the prompt change. **Cumulative: $0.135 Claude, $0.0001 OpenAI** |
+| 5 | 0.183 | 0.0002 | Pivot to code support. One live smoke of indexing + 3 ticket routes (`scripts/live_support_smoke.py`). **Cumulative: $0.318 Claude, $0.0003 OpenAI** |

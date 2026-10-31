@@ -47,6 +47,10 @@ Order: Neon → Render → Vercel → update the backend's CORS origins.
 | `ADMIN_TOKEN` | a long random string |
 | `CORS_ORIGINS` | `https://<your-app>.vercel.app` (set after step 3) |
 | `CORS_ORIGIN_REGEX` | optional, e.g. `https://supfeel-.*\.vercel\.app` for preview deploys |
+| `PUBLIC_APP_URL` | `https://<your-app>.vercel.app` (links in PR bodies and notifications) |
+| `GITHUB_APP_ID`, `GITHUB_APP_SLUG`, `GITHUB_WEBHOOK_SECRET` | from the GitHub App (`docs/project/github-app-setup.md`) |
+| `GITHUB_APP_PRIVATE_KEY_PATH` | `/etc/secrets/github-app.pem` with a **Secret File** named `github-app.pem` (Environment → Secret Files) |
+| `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` | optional business notifications (also `SLACK_WEBHOOK_URL`, `DISCORD_WEBHOOK_URL`) |
 
 4. **Create Web Service**. The first build takes a few minutes. Check
    `https://<service>.onrender.com/api/health` → `{"status":"ok","llm_mode":"live",…}`.
@@ -63,6 +67,13 @@ Free Render services **spin down after ~15 minutes without traffic**. The next r
   Turn it on before judging, and off afterwards if you like.
 - Or at least open the site ~1 minute before presenting.
 
+### After the first deploy
+
+- GitHub App → set the **Webhook URL** to `https://<service>.onrender.com/api/github/webhook`.
+- Workspace → import your repo. For the Slice demo, push `examples/slice-pizza` to its own **public** repo (so CI on
+  fix PRs is free), install the App on it, import it, then in the repo's Settings tab set
+  *Business API base URL* `https://<service>.onrender.com/demo-store` and *Service token* `demo-service-token`.
+
 ## 3. Vercel (frontend)
 
 1. Add New → Project → import `ryl1k/Supfeel`. **Root Directory: `frontend`**. Framework: Next.js (auto).
@@ -72,6 +83,7 @@ Free Render services **spin down after ~15 minutes without traffic**. The next r
 ## Operating the demo
 
 - Reset demo data: the "Reset data" button in `/chat`, or `curl -X POST https://<api>/api/demo/reset`.
+  Reset the Slice demo store: `curl -X POST https://<api>/demo-store/admin/reset`.
 - Spend: `curl -H "x-admin-token: $ADMIN_TOKEN" https://<api>/api/admin/usage`.
 - Kill switch: set `LLM_MODE=mock` on Render. The agent keeps working with the deterministic rule brain and $0 spend.
 - Auto-deploy: Render redeploys on every push to `main` (sprint merges).

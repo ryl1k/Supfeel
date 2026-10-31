@@ -1,38 +1,38 @@
 # Demo script (≈ 4 minutes)
 
-Before the demo: open `/chat`, press **Reset data**, and check that `/api/health` shows `llm_mode: live`.
-Fallback: if Claude or the network misbehaves, set `LLM_MODE=mock` on Render. Open the site ~1 min early (or keep the uptime ping on) so the free instance is awake. Every scenario below also works with the rule brain.
+**Before:** Render awake (uptime ping or open `/api/health` a minute early), `LLM_MODE=live`, the Slice repo
+imported and **Ready**, Settings → API base URL `https://<api>/demo-store` + token `demo-service-token`, and
+`curl -X POST https://<api>/demo-store/admin/reset`. Have Telegram open on your phone.
+Fallback: `LLM_MODE=mock` still runs every route (rules brains; bugs become reports instead of PRs).
 
-## 0. Hook (landing page, 20 s)
-"Most AI support bots answer questions. Supfeel **solves problems**: it understands, investigates, acts, and verifies."
-Click **Start chatting**.
+## 0. Hook (20 s)
+"Support teams bounce customers between FAQs, agents and an engineering backlog. Supfeel has read your code, so it
+knows whether the customer misunderstood, whether it can just do it for them, or whether the product is broken, and
+then it fixes the code."
 
-## 1. Hero: Maya, uncomfortable sneakers (90 s)
-1. Persona **Maya Chen** → "I bought these sneakers, but they're uncomfortable. Can you help?"
-   - Supfeel asks one sharp question (what feels off). It doesn't ask for an order number.
-2. "They're too narrow, pinching on the sides."
-   - Open the **step trail**: it found order V1042, delivered 9 days ago, and cited the *30-day comfort guarantee*.
-   - **Recommendations**: the same Cloud Runner in **Wide (2E)**, ranked by her style.
-   - **Needs your OK** card: exchange + return label.
-3. **Approve** → two **Verified** cards (exchange order created, label active), each with its checks listed.
+## 1. Import and understand (40 s)
+Workspace → the Slice repo card → **Overview** (Claude explained the product, business rules, where to look) →
+**Modules** → **API actions** (from the OpenAPI spec: what Supfeel can do for customers) → **Index runs** trace.
+Mention: re-indexes on every push; only changed files are re-embedded.
 
-Talking point: *verification reads the database again; it never trusts the tool's own response.*
+## 2. Bug → verified fix (90 s, the hero)
+Customer support page → **Maya** → "Checkout keeps saying 'Invalid address' for 12 Oak St Apt #4B".
+- Step trail: Understand → Triage (*technical issue*) → Fix: the agent searches, reads `validation.py`, edits the
+  regex, adds a regression test.
+- Reply: apology + workaround ("write Apt 4B without the #"), no internals.
+- Telegram buzzes: 🛠️ PR opened. Open the ticket page: root cause, diff, **PR link**, CI checks turn green → ✅ CI passed.
+- (Optional) merge the PR on GitHub → ticket becomes **Resolved**, the customer gets "the fix is live", and the
+  push re-indexes the repo.
 
-## 2. Autonomy within policy: Alex, double charge (40 s)
-"Why was I charged twice for my last order?"
-- Refunds the duplicate **without asking** (the policy allows it for duplicate captured charges) and verifies it.
-- Explains that the other two charges are only authorization holds, not charges.
+## 3. Can't do it → we do it (45 s)
+**New ticket** → **Jordan** → "The app crashes when I tap Reorder. Could you place my last order again for me?"
+- Supfeel looks up Jordan's orders through the API and proposes *exactly* what it will send → **Approve** →
+  **Verified** card: read back via `get_order`, every field matches. The crash is also reported to the business.
 
-## 3. Retention + judgment: Sam, cancel membership (40 s)
-"Please cancel my Velora Club membership." → offers a pause **once** (policy). "No, just cancel it."
-→ proposes cancel **+ full refund of the 3-day-old renewal** (unused benefits) → Approve → verified.
+## 4. Misunderstanding (20 s)
+"Why do I pay a delivery fee?" → explained from the code/docs (free from $25.00), "does that clear it up?" → "thanks" → resolved and learned.
 
-## 4. Saying no well: Lee, day-45 return (20 s)
-"I'd like to return the shoes I bought last month." → politely declines (outside 30 days) and offers the warranty path.
-
-## 5. Close (20 s)
-- Safety: actions over $200 go to a human, sensitive actions need approval, and the authority rules are enforced in code, not the prompt.
-- Cost: ≈ $0.02 per resolved conversation with Claude Sonnet + prompt caching; deterministic investigation and verification.
-- Stack: Claude + LangGraph + pgvector (Neon) + FastAPI (Render) + Next.js (Vercel).
-
-Extra personas if there's time: **Jordan** (lost package → express reship), **Priya** (sole separation → warranty replacement), "I want to talk to a real person" (escalation).
+## 5. Transparency + close (25 s)
+Ticket page → **Trace**: the graph of steps, every Claude call (tokens, cache hits, cost), every search, API and
+GitHub request. Inbox: everything the business was told.
+Close: "Explain, act, or fix: verified every time. About $0.04 per ticket on Claude Sonnet with caching."

@@ -37,3 +37,18 @@ Each sprint ends with: docs updated (`docs/agents/`), spend logged (`budget.md`)
 - **Actual deploy**: needs the user's Neon, Render and Vercel accounts (follow `deployment.md`)
 - Fetch the hackathon rules and judging criteria via the DevRelay MCP and tailor the pitch
 - Optional: Qloo integration (the recommendation provider hook exists), restoring the transcript on page reload
+
+## Sprint 5: Code-aware support (pivot) ✅
+
+- GitHub App client, repository import + incremental indexing (code-aware chunks, OpenAPI actions, module
+  summaries, overview), Q&A over the repo
+- Ticket graph: triage → explain / assisted action / fix PR / feature / escalate, learning from closed tickets
+- Fix agent (Claude tool loop) → PR → CI verification → merge closes the ticket; push webhook re-indexes
+- Tracing for every step and call with a graph UI; Telegram / Slack / Discord notifications
+- Workspace dashboard, ticket pages, customer support page; Slice demo target repo
+
+## Next
+
+- Deploy (Render + Neon + Vercel), push Slice to its own public repo, install the App, set the webhook URL
+- Optional: auto-retry a fix when CI fails (feed the failing check log back to the agent)
+- Optional: per-repo API keys for programmatic ticket intake (widget embed)

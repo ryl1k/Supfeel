@@ -81,3 +81,25 @@ Append one entry per sprint (newest at the bottom).
 **Spend**: Claude $0.067 (second live smoke run). Cumulative $0.135 / $90, OpenAI $0.0001 / $5
 
 **Not done (needs the user)**: the real deploy (accounts/logins for Neon, Railway, Vercel), a `devrelay login` to fetch the hackathon rules.
+
+## Sprint 5: Pivot to code-aware support (2026-10-31)
+
+**Done**
+- GitHub App integration (installation tokens, PAT fallback, anonymous public reads), webhook with HMAC check
+- Repository indexing: tarball snapshots, filters/limits, code-aware chunking + outlines, OpenAPI → API operations,
+  Claude module summaries + overview (hash-skipped when unchanged), hybrid search, "ask the codebase"
+- Ticket graph: context → triage → explain / assist / fix / feature / escalate → respond; follow-ups, typed yes/no
+- Assisted actions with code-enforced authority + read-back verification; fix agent (Claude tool loop) → PR → CI
+  poller/webhooks → merge resolves the ticket; learning from closed tickets; push re-index
+- Tracing (`spans`) for runs, steps, LLM, embeddings, search, tools, HTTP; trace graph + waterfall UI
+- Notifications: inbox + Telegram / Slack / Discord (`scripts/telegram_setup.py`)
+- Frontend workspace, repo, ticket, inbox and customer support pages; landing copy updated
+- Slice demo target repo (`examples/slice-pizza`), mounted at `/demo-store`
+- 64 backend tests; live smoke `scripts/live_support_smoke.py`
+
+**Spend**: Claude $0.183, OpenAI $0.0002 (one live smoke). Cumulative $0.318 / $90, OpenAI $0.0003 / $5
+
+**Fixed along the way**: `.pem` key was in the repo root unignored (moved to `~/.secrets`, `*.pem` ignored); empty
+duplicate `DATABASE_URL` in `.env` removed; Chrome's `scrollIntoView` returning a Promise broke an effect.
+
+**Next**: deploy, publish Slice as its own repo, install the App, run the PR → CI → merge loop live.

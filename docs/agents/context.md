@@ -1,59 +1,64 @@
 # Agent context: current state
 
-_Last updated: 2026-10-31, end of Sprint 4._
+_Last updated: 2026-10-31, end of Sprint 5 (pivot to code-aware support)._
 
 ## Where we are
 
-- Sprints 0–4 are **done** on the code side: backend (agent + SSE API, 51 tests), frontend (landing + chat), deploy configs, CI.
-- Live Claude path verified twice (≈ $0.017 per turn). Total spend: $0.135 Claude, $0.0001 OpenAI.
-- Remaining: the real deploy, which needs the user's accounts (`docs/project/deployment.md`), and the hackathon rules (DevRelay MCP).
-- Active branch: `dev`. `main` is updated at each sprint end.
+- **Product (since Sprint 5)**: import a GitHub repo → index + explain it → resolve tickets by explaining, acting
+  through the business API, or fixing bugs with a PR verified by CI. Tracing, learning, notifications, push re-index.
+- Backend: 64 tests passing (mock mode). Live pipeline verified with `scripts/live_support_smoke.py` ($0.18).
+- Frontend: `/app` workspace, `/app/repos/[id]`, `/app/tickets[/id]`, `/app/inbox`, `/support/[repoId]`; verified
+  end to end in headless Chrome against the mock backend (desktop + 390 px).
+- The legacy Velora agent (`/chat`, `app/agent`, `app/tools`, `knowledge-base/`) still works and is untouched.
+- Spend: $0.318 Claude, $0.0003 OpenAI (of $90 / $5).
+- GitHub App `supfeel` is created and its credentials verified (app auth works). It has **no installations yet**.
+  Telegram notifications are configured in the user's `.env` and delivered.
 
 ## Run locally
 
 ```bash
-docker compose up -d                       # pgvector on localhost:5433
-cd backend && uv sync
-uv run python -m app.boot                  # tables + demo data (if empty) + KB embeddings
-uv run uvicorn app.main:app --reload       # http://localhost:8000/api/health
-cd ../frontend && npm install && npm run dev  # http://localhost:3000 (NEXT_PUBLIC_API_URL defaults to :8000)
-uv run pytest                              # uses DB supfeel_test
-LLM_MODE=live uv run python -m scripts.live_smoke   # real Claude end to end (~$0.07, then cached)
+docker compose up -d
+cd backend && uv sync && uv run python -m app.boot
+ALLOW_LOCAL_REPOS=true uv run uvicorn app.main:app --reload
+cd ../frontend && npm run dev                       # /app
+uv run pytest                                       # DB supfeel_test
+LLM_MODE=live uv run python -m scripts.live_support_smoke   # ≈ $0.2
 ```
 
-## What exists
+`.env` points `DATABASE_URL` at **Neon**. For local runs export
+`DATABASE_URL=postgresql+asyncpg://postgres:postgres@localhost:5433/supfeel` (env beats `.env`).
+
+## Map
 
 | Path | What |
 |---|---|
-| `docs/project/brief.md` | Product, demo narrative, scenarios |
-| `docs/project/architecture.md` | Proposed stack and LangGraph design (FastAPI + Next.js) |
-| `docs/project/design-system.md` | Color/typography tokens and components from the landing mock |
-| `docs/project/budget.md` | Spend targets, per-call estimates, mandatory cost controls |
-| `docs/project/roadmap.md` | Sprints 0–4 |
-| `docs/project/conventions.md` | Git/commit/code rules |
-| `docs/features/` | Per-feature context (10 files each) for 6 planned features + `_template` |
-| `knowledge-base/` | 8 policy docs + 3 FAQ docs for the fictional store **Velora** |
-| `backend/` | FastAPI app: `app/db`, `app/llm`, `app/tools`, `app/rag`, `app/api` |
-| `frontend/` | Next.js 16 app: `/` landing, `/chat` agent UI |
-| `backend/Dockerfile`, `frontend/vercel.json` | Deploy configs (see `docs/project/deployment.md`) |
-| `.github/workflows/ci.yml` | CI: backend tests + frontend build |
-| `docker-compose.yml` | Local pgvector Postgres (port 5433) |
-| `.env` (untracked) | Has `ANTHROPIC_API_KEY`, `OPENAI_API_KEY` |
+| `backend/app/repos/` | `github.py` (App JWT → installation tokens, PAT, anonymous), `source.py`, `chunker.py`, `openapi.py`, `explain.py`, `indexer.py` (jobs), `search.py`, `ask.py` |
+| `backend/app/support/` | `graph.py` (LangGraph), `service.py` (turn driver, follow-ups, confirm), `triage.py`, `context.py`, `assist.py` (authority), `fixer.py` (tool loop + PR), `ci.py`, `learn.py`, `notify.py` |
+| `backend/app/obs/trace.py` | spans (ContextVar), `record_span`, `load_trace` |
+| `backend/app/api/` | `repos.py`, `tickets.py`, `github.py` (webhook), legacy `chat.py`, `admin.py` |
+| `examples/slice-pizza/` | demo target (bugs: `#`/`/` rejected in street regex; `>` instead of `>=` for free delivery) |
+| `frontend/components/app/` | dashboard (Workspace, RepoView, TicketView, TraceView, Lists, ui) |
+| `frontend/components/support/` | customer support chat |
+| `docs/features/` | 10-file context per feature (6 new ones for Sprint 5) |
 
 ## Next up
 
-1. Deploy per `docs/project/deployment.md` (Neon → Render → Vercel → CORS).
-2. After the user runs `devrelay login` and restarts Claude Code: fetch the event's rules, judging criteria and sponsor tracks (DevRelay MCP), then tailor `docs/project/brief.md` and the demo script.
-3. Nice-to-have: restore the transcript on reload, Qloo provider.
+1. Deploy (`docs/project/deployment.md`): Neon → Render (+ Secret File for the App key) → Vercel → CORS → App webhook URL.
+2. Push `examples/slice-pizza` to its own **public** repo, install the App on it, import it, set its API settings.
+3. Hackathon rules via DevRelay MCP after `devrelay login`.
+4. Optional: retry a fix when CI fails using the failing check's log; API keys for programmatic ticket intake.
 
 ## Key decisions
 
-- Demo store: Velora (footwear/apparel). Hero scenario: uncomfortable sneakers → comfort-guarantee exchange with a wide-fit suggestion.
-- Investigate and verify steps are deterministic (no LLM), so there are about 3 LLM calls per resolved issue.
-- Hosting: Vercel (frontend) + Render (backend, Docker) + Neon Postgres with pgvector (data + vectors).
-- Qloo is optional, with a local fallback.
+- Index = one tarball per run + content-hash diff (simple, robust; "incremental" by content, not by git diff).
+- Fix agent edits an in-memory overlay of indexed files; publishing re-applies `old_str → new_str` edits on the
+  branch head, so a stale index can't revert newer code.
+- CI on the PR is the verification for fixes; read-back is the verification for actions.
+- Authority rules live in code (`assist.py`), never only in prompts.
+- Every ticket turn runs in a background task (survives disconnects); trace id = ticket id.
+- Learning = closed tickets embedded as `ticket` chunks in the repo index.
 
 ## Open questions
 
-- Hackathon name, rules and judging criteria are unknown. The event is MLH-affiliated, so once the user runs `devrelay login`, use the DevRelay MCP (`get_mlh_event`) to fetch them.
-- Render's free tier sleeps after ~15 min idle (30–60 s cold start). Use a keep-alive ping during judging. Fallbacks: Koyeb, HF Spaces. (Railway was dropped on 2026-10-31: not working for the user.)
+- Hackathon rules / judging criteria still unknown (DevRelay needs login).
+- Render free tier sleeps; GitHub webhooks time out at 10 s → keep-alive ping; CI poller covers missed events.
