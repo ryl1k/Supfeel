@@ -1,17 +1,26 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
   <defs>
-    <linearGradient id="a" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#6B6FF2"/>
-      <stop offset="1" stop-color="#2F3FE0"/>
+    <linearGradient id="g0" x1="0.15" y1="0.1" x2="0.85" y2="0.95">
+      <stop offset="0" stop-color="#7C80F6"/>
+      <stop offset="0.55" stop-color="#3442E4"/>
+      <stop offset="1" stop-color="#2A2FB8"/>
     </linearGradient>
-    <linearGradient id="b" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#A9ADF7"/>
-      <stop offset="1" stop-color="#4353F0"/>
+    <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#B7BAFA"/>
+      <stop offset="1" stop-color="#5A63F0"/>
     </linearGradient>
   </defs>
-  <polygon points="32,4 56,18 56,46 32,60 8,46 8,18" fill="url(#a)"/>
-  <polygon points="32,4 56,18 32,26 8,18" fill="url(#b)" opacity="0.9"/>
-  <polygon points="8,18 32,26 32,60 8,46" fill="#3A47E6" opacity="0.85"/>
-  <polygon points="56,18 56,46 32,60 32,26" fill="#2330C4" opacity="0.9"/>
-  <polygon points="20,22 32,26 44,22 32,14" fill="#C9CBFA" opacity="0.55"/>
+  <!-- round brilliant, seen from above: octagonal girdle, octagonal table, star facets -->
+  <polygon points="22,4 42,4 60,22 60,42 42,60 22,60 4,42 4,22" fill="url(#g0)"/>
+  <polygon points="25,17 39,17 47,25 47,39 39,47 25,47 17,39 17,25" fill="url(#g1)" opacity="0.92"/>
+  <polygon points="22,4 42,4 39,17 25,17" fill="#9A9EF8" opacity="0.85"/>
+  <polygon points="4,22 22,4 25,17 17,25" fill="#C9CBFA" opacity="0.7"/>
+  <polygon points="42,4 60,22 47,25 39,17" fill="#6B6FF2" opacity="0.9"/>
+  <polygon points="4,22 17,25 17,39 4,42" fill="#5F67F2" opacity="0.85"/>
+  <polygon points="60,22 60,42 47,39 47,25" fill="#2F3FE0" opacity="0.95"/>
+  <polygon points="4,42 17,39 25,47 22,60" fill="#3A47E6" opacity="0.95"/>
+  <polygon points="60,42 42,60 39,47 47,39" fill="#2228A8" opacity="0.95"/>
+  <polygon points="22,60 25,47 39,47 42,60" fill="#2B33C4" opacity="0.95"/>
+  <polygon points="25,17 32,24 39,17" fill="#E2E3FD" opacity="0.35"/>
+  <polygon points="17,25 24,32 17,39" fill="#E2E3FD" opacity="0.18"/>
 </svg>
