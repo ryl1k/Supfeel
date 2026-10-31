@@ -4,7 +4,6 @@ import Link from "next/link";
 import { type FormEvent, useState } from "react";
 
 import { ArrowRight } from "@/components/ui/icons";
-import { usePoll } from "@/lib/usePoll";
 import { api, type GithubStatus, type Repo } from "@/lib/workspace";
 
 import { Badge, Button, Card, CategoryBadge, Empty, ErrorNote, Input, Spinner, StatusBadge, timeAgo } from "./ui";
@@ -128,59 +127,6 @@ export function GithubCard({ status }: { status: GithubStatus | null }) {
         ) : null}
       </div>
     </Card>
-  );
-}
-
-export function Workspace() {
-  const status = usePoll(() => api.githubStatus(), "", 60_000);
-  const repos = usePoll(() => api.repos(), "", 2500, (d) => !!d?.some((r) => r.status === "indexing" || r.status === "pending"));
-  const tickets = usePoll(() => api.tickets(), "", 10_000);
-
-  return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h1 className="text-[28px] font-semibold tracking-tight sm:text-[34px]">
-            Your <span className="text-gradient">support workspace</span>
-          </h1>
-          <p className="mt-1 max-w-2xl text-[15px] text-text-300">
-            Import a product&apos;s repository. Supfeel learns it, then resolves tickets: it explains, acts through your API, or ships a verified fix.
-          </p>
-        </div>
-      </div>
-
-      <div className="grid gap-5 lg:grid-cols-[1.4fr_1fr]">
-        <ImportCard status={status.data} onImported={() => repos.refresh()} />
-        <GithubCard status={status.data} />
-      </div>
-
-      <section>
-        <h2 className="mb-3 text-[15px] font-semibold text-lavender-200">Repositories</h2>
-        {repos.error ? <ErrorNote>Can&apos;t reach the Supfeel API: {repos.error}</ErrorNote> : null}
-        {!repos.data ? (
-          <Spinner />
-        ) : repos.data.length ? (
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {repos.data.map((r) => (
-              <RepoCard key={r.id} repo={r} />
-            ))}
-          </div>
-        ) : (
-          <Empty>No repositories yet. Import one above, e.g. the Slice demo store.</Empty>
-        )}
-      </section>
-
-      <Card
-        title="Recent tickets"
-        action={
-          <Link href="/app/tickets" className="text-[13px] text-lavender-200 hover:text-white">
-            All tickets
-          </Link>
-        }
-      >
-        <TicketList tickets={(tickets.data ?? []).slice(0, 8)} loading={!tickets.data} />
-      </Card>
-    </div>
   );
 }
 
