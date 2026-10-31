@@ -159,10 +159,12 @@ async def test_dashboard_reflects_onboarding_and_tickets(workspace):
 
         user = await s.scalar(select(User).where(User.account_id == account))
     token = await auth._new_session(user.id)
-    c = TestClient(app)
-    d = c.get("/api/dashboard", headers={"Authorization": f"Bearer {token}"}).json()
-    assert (
-        d["onboarding"]["repo_ready"] and d["onboarding"]["key_created"] and d["onboarding"]["api_connected"]
-    )
-    assert len(d["daily"]) == 14 and d["billing"]["balance_cents"] <= billing.FREE_GRANT_CENTS
-    assert c.get("/api/dashboard").status_code == 401
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as c:
+        d = (await c.get("/api/dashboard", headers={"Authorization": f"Bearer {token}"})).json()
+        assert (
+            d["onboarding"]["repo_ready"]
+            and d["onboarding"]["key_created"]
+            and d["onboarding"]["api_connected"]
+        )
+        assert len(d["daily"]) == 14 and d["billing"]["balance_cents"] <= billing.FREE_GRANT_CENTS
+        assert (await c.get("/api/dashboard")).status_code == 401
