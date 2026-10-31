@@ -55,6 +55,7 @@ export interface GithubStatus {
   webhook_configured: boolean;
   open_import: boolean;
   allow_local_repos: boolean;
+  demo: { label: string; repo?: string; local_path?: string; api_base_url_path: string; api_token: string; business_name: string } | null;
 }
 
 export type TicketStatus =
@@ -282,7 +283,33 @@ export interface ApiKey {
   key?: string;
 }
 
+export interface Dashboard {
+  window_days: number;
+  tickets: number;
+  automated: number;
+  escalated_to_human: number;
+  by_category: Record<string, number>;
+  by_status: Record<string, number>;
+  by_channel: Record<string, number>;
+  daily: { date: string; count: number }[];
+  fixes: { prs: number; ci_passed: number; patches: number; not_a_bug: number };
+  actions: { done: number; verified: number };
+  learned: number;
+  onboarding: {
+    repo_imported: boolean;
+    repo_ready: boolean;
+    api_connected: boolean;
+    key_created: boolean;
+    first_ticket: boolean;
+    first_mcp_escalation: boolean;
+    payment_method: boolean;
+    first_repo_id: string | null;
+  };
+  billing: Billing | null;
+}
+
 export const api = {
+  dashboard: () => call<Dashboard>("/api/dashboard"),
   signup: (body: { email: string; password: string; name: string; company: string }) =>
     call<Me & { token: string }>("/api/auth/signup", { method: "POST", body: JSON.stringify(body) }),
   login: (body: { email: string; password: string }) =>

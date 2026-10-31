@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
 
+import { Board } from "@/components/app/Board";
 import { Shell } from "@/components/app/Shell";
-import { Workspace } from "@/components/app/Workspace";
 
-export const metadata: Metadata = { title: "Workspace · Supfeel" };
+export const metadata: Metadata = { title: "Board · Supfeel" };
 
-export default function WorkspacePage() {
+export default function BoardPage() {
   return (
     <Shell>
-      <Workspace />
+      <Board />
     </Shell>
   );
 }
