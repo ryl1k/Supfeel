@@ -75,7 +75,7 @@ async def month_spend_cents(account_id: str) -> int:
         spent = await s.scalar(
             select(func.coalesce(func.sum(CreditEntry.amount_cents), 0)).where(
                 CreditEntry.account_id == account_id,
-                CreditEntry.kind == "usage",
+                CreditEntry.kind.in_(("usage", "refund")),
                 CreditEntry.created_at >= month_start(),
             )
         )
@@ -180,7 +180,7 @@ async def summary(account_id: str) -> dict:
                 select(CreditEntry.metric, func.sum(CreditEntry.quantity), func.sum(CreditEntry.amount_cents))
                 .where(
                     CreditEntry.account_id == account_id,
-                    CreditEntry.kind == "usage",
+                    CreditEntry.kind.in_(("usage", "refund")),
                     CreditEntry.created_at >= month_start(),
                 )
                 .group_by(CreditEntry.metric)

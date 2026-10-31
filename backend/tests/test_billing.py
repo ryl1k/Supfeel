@@ -59,3 +59,10 @@ def test_month_boundaries():
 
     assert billing.next_month_start(datetime(2026, 12, 15, tzinfo=UTC)) == datetime(2027, 1, 1, tzinfo=UTC)
     assert billing.month_start(datetime(2026, 10, 31, 23, tzinfo=UTC)) == datetime(2026, 10, 1, tzinfo=UTC)
+
+
+async def test_refund_reduces_month_spend(account):
+    await billing.charge(account, "fix", ref="T-9")
+    await billing.refund(account, "fix", "T-9", "not performed")
+    s = await billing.summary(account)
+    assert s["month"]["spent_cents"] == 0 and s["balance_cents"] == billing.FREE_GRANT_CENTS
