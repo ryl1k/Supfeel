@@ -136,3 +136,39 @@ async def test_confirm_without_pending_errors(demo_db):
     await collect(service.handle_message(cid, "cus_maya", "hello"))
     events = [e async for e in service.handle_confirm(cid, approved=True)]
     assert events[0]["event"] == "error"
+
+
+@pytest.mark.parametrize(
+    "message, intent",
+    [
+        ("Please cancel my Velora Club membership.", "cancel_membership"),
+        ("Can you pause my club membership for two months?", "pause_membership"),
+        ("Please ship my new order to 12 Beacon St, Boston, MA 02108", "change_address"),
+        ("The sole on my Court sneakers is coming apart.", "damaged_or_defective"),
+        ("Why was I charged twice for my last order?", "double_charge"),
+    ],
+)
+def test_rule_brain_routes_suggested_prompts(message, intent):
+    from app.agent.rules import understand
+
+    assert understand(message).intent == intent
+
+
+async def test_switch_to_refund_while_reship_pending(demo_db):
+    cid = conv()
+    _, done, _ = await collect(service.handle_message(cid, "cus_jordan", "My package still hasn't arrived."))
+    assert done["outcome"] == "awaiting_confirmation"
+    events, done, _ = await collect(
+        service.handle_message(cid, "cus_jordan", "Can I just get a refund instead?")
+    )
+    assert done["outcome"] == "awaiting_confirmation"
+    assert of(events, "action_proposed")[0]["actions"][0]["tool"] == "create_refund"
+
+
+async def test_address_change_for_processing_order(demo_db):
+    cid = conv()
+    events, done, _ = await collect(
+        service.handle_message(cid, "cus_lee", "Please ship my new order to 12 Beacon St, Boston, MA 02108")
+    )
+    assert done["outcome"] == "resolved"
+    assert of(events, "action_done")[0]["action"]["tool"] == "update_address"
