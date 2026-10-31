@@ -1,0 +1,107 @@
+@import "tailwindcss";
+
+/* Design tokens: docs/project/design-system.md */
+:root {
+  --bg-0: #060a2b;
+  --bg-1: #0b1240;
+  --sapphire-600: #2f3fe0;
+  --sapphire-500: #4353f0;
+  --indigo-400: #6b6ff2;
+  --lavender-300: #a9adf7;
+  --lavender-200: #c9cbfa;
+  --text-100: #ffffff;
+  --text-300: #b8bce0;
+  --panel: rgba(30, 38, 110, 0.45);
+  --panel-strong: rgba(24, 31, 96, 0.72);
+  --panel-bubble: rgba(55, 64, 150, 0.55);
+  --border: rgba(169, 173, 247, 0.22);
+  --success: #3ddc84;
+  --warning: #f5b54a;
+  --danger: #f26d7d;
+}
+
+@theme inline {
+  --color-bg-0: var(--bg-0);
+  --color-bg-1: var(--bg-1);
+  --color-sapphire-600: var(--sapphire-600);
+  --color-sapphire-500: var(--sapphire-500);
+  --color-indigo-400: var(--indigo-400);
+  --color-lavender-300: var(--lavender-300);
+  --color-lavender-200: var(--lavender-200);
+  --color-text-100: var(--text-100);
+  --color-text-300: var(--text-300);
+  --color-panel: var(--panel);
+  --color-panel-strong: var(--panel-strong);
+  --color-bubble: var(--panel-bubble);
+  --color-line: var(--border);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+  --font-sans: var(--font-figtree), "Inter", system-ui, sans-serif;
+}
+
+html {
+  color-scheme: dark;
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--bg-0);
+  color: var(--text-100);
+  font-family: var(--font-figtree), "Inter", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.glass {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.text-gradient {
+  background: linear-gradient(100deg, var(--lavender-300) 0%, var(--indigo-400) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.btn-primary {
+  background: var(--sapphire-600);
+  box-shadow: 0 10px 30px -10px rgba(47, 63, 224, 0.65);
+  transition: background 150ms ease, transform 150ms ease;
+}
+.btn-primary:hover {
+  background: var(--sapphire-500);
+}
+.btn-primary:active {
+  transform: translateY(1px);
+}
+
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(169, 173, 247, 0.25) transparent;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 1; }
+}
+.typing span {
+  animation: pulse-dot 1.2s infinite ease-in-out;
+}
+.typing span:nth-child(2) { animation-delay: 0.15s; }
+.typing span:nth-child(3) { animation-delay: 0.3s; }
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.rise {
+  animation: rise 260ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rise, .typing span { animation: none; }
+  html { scroll-behavior: auto; }
+}

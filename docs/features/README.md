@@ -25,8 +25,8 @@ New feature: `cp -r docs/features/_template docs/features/<name>`, fill in all 1
 | [business-tools](business-tools/FEATURE.md) | done | Mock Velora systems (Postgres) + read/write tools + demo reset |
 | [knowledge-base-rag](knowledge-base-rag/FEATURE.md) | done | Chunk + embed `knowledge-base/` into pgvector; top-k retrieval |
 | [llm-budget-guard](llm-budget-guard/FEATURE.md) | done | Single LLM gateway: caps, usage ledger, caching, mock/replay/live |
-| [chat-experience](chat-experience/FEATURE.md) | planned | `/chat` UI: streaming, action trail, confirmations, recommendations |
-| [landing-page](landing-page/FEATURE.md) | planned | `/` hero matching the design reference |
+| [chat-experience](chat-experience/FEATURE.md) | done | `/chat` UI: streaming, action trail, confirmations, recommendations |
+| [landing-page](landing-page/FEATURE.md) | done | `/` hero matching the design reference |
 
 ## Keeping it current
 

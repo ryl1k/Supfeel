@@ -22,7 +22,7 @@ Each sprint ends with: docs updated (`docs/agents/`), spend logged (`budget.md`)
 - SSE streaming of tokens and action events
 - Scenario tests (replay) for the hero and secondary scenarios
 
-## Sprint 3: Frontend
+## Sprint 3: Frontend ✅
 - Landing page matching `docs/design/landing-reference.png`
 - Chat page: glass chat window, action trail, confirmation cards, recommendation card
 - Wire to the backend SSE stream; demo customer picker

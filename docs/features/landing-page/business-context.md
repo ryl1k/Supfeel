@@ -1,6 +1,6 @@
 # Business context
 
-> Status: **planned**. Paths below are the agreed target layout; no code yet. Update when implemented.
+> Status: **done** (Sprint 3). Paths below are real; keep them in sync with the code.
 
 - Positioning: **"More than answers — real solutions."**
 - How it works copy: Understand → Investigate → Act → Verify.

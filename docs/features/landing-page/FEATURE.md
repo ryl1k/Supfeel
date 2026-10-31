@@ -1,6 +1,6 @@
 # Landing page
 
-> Status: **planned**. Paths below are the agreed target layout; no code yet. Update when implemented.
+> Status: **done** (Sprint 3). Paths below are real; keep them in sync with the code.
 
 The marketing hero from `docs/design/landing-reference.png`: nav, headline "Supfeel / AI support that /
 *truly helps*", subtitle, "Start chatting" CTA, and a live-looking chat preview on the right.

@@ -1,6 +1,6 @@
 {
   "feature": "landing-page",
-  "status": "planned",
+  "status": "done",
   "routes": [
     {
       "path": "/",
@@ -8,9 +8,14 @@
     }
   ],
   "code": [
-    "frontend/components/landing/",
-    "frontend/styles/tokens.css",
+    "frontend/components/landing/Nav.tsx",
+    "frontend/components/landing/Hero.tsx",
+    "frontend/components/landing/ChatPreview.tsx",
+    "frontend/components/landing/Sections.tsx",
+    "frontend/components/brand/Gem.tsx",
+    "frontend/components/brand/BackgroundWaves.tsx",
     "frontend/app/layout.tsx",
+    "frontend/app/globals.css",
     "frontend/public/gem.svg"
   ],
   "design": [

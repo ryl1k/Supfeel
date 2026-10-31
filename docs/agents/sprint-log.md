@@ -54,3 +54,16 @@ Append one entry per sprint (newest at the bottom).
 **Tooling**: DevRelay MCP (MLH + DEV) installed for Claude Code at the user's request. It needs `devrelay login` + a restart. Use it to find the event's rules, judging criteria and sponsor tracks.
 
 **Next**: Sprint 3: Next.js frontend (landing + chat).
+
+## Sprint 3: Frontend (2026-10-31)
+
+**Done**
+- `frontend/`: Next.js 16.4 (App Router, `cacheComponents`), Tailwind v4, Figtree
+- Landing `/` matching the reference mock (nav, 3-line hero, glass chat preview, waves, round-brilliant gem), plus Features / How it works / About sections
+- Chat `/chat`: persona picker, suggested prompts, streaming replies, step trail with policy citations, confirmation card, verified action cards, recommendations, demo reset
+- Verified end to end in headless Chrome against the mock backend (hero: ask → propose → approve → 2 verified actions)
+- Rule-brain and LLM reply style shortened when a confirmation card is shown (no duplicated details)
+
+**Spend**: $0 (mock mode)
+
+**Next**: Sprint 4: deployment configs (Vercel + Railway + Neon), README, demo script.

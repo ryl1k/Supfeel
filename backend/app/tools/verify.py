@@ -67,7 +67,11 @@ async def _verify_label(args: dict, result: dict) -> list[Check]:
         label = await s.get(ReturnLabel, result["label_id"])
     return [
         _check("Label active", label is not None and label.status == "active", result["label_id"]),
-        _check("Label not expired", label is not None and label.expires_at > _now(), result["expires_at"]),
+        _check(
+            "Label not expired",
+            label is not None and label.expires_at > _now(),
+            f"valid until {result['expires_at'][:10]}",
+        ),
     ]
 
 
