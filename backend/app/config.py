@@ -67,6 +67,8 @@ class Settings(BaseSettings):
     ticket_cap_usd: float = 0.40
     fix_cap_usd: float = 1.50
     fix_max_turns: int = 16
+    ci_poll_seconds: float = 20.0
+    ci_poll_max: int = 45  # ≈ 15 minutes of polling per fix PR
     # Allow anyone to import repositories (otherwise the x-admin-token header is required).
     open_import: bool = False
 

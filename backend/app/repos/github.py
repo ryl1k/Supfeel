@@ -3,10 +3,12 @@
 Every request is traced as an `http` span. See docs/project/github-app-setup.md for the App setup.
 """
 
+import base64
 import hashlib
 import hmac
 import time
 from typing import Any
+from urllib.parse import quote
 
 import httpx
 import jwt
@@ -107,6 +109,15 @@ class GitHub:
                             raise GitHubError(413, "repository archive is too large")
             sp.set(bytes=len(buf))
             return bytes(buf)
+
+    async def get_file(self, full_name: str, path: str, ref: str) -> str | None:
+        try:
+            data = await self.request("GET", f"/repos/{full_name}/contents/{quote(path)}?ref={quote(ref)}")
+        except GitHubError as e:
+            if e.status == 404:
+                return None
+            raise
+        return base64.b64decode(data.get("content", "")).decode("utf-8")
 
     async def compare(self, full_name: str, base: str, head: str) -> list[dict[str, Any]]:
         data = await self.request("GET", f"/repos/{full_name}/compare/{base}...{head}")
