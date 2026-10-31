@@ -1,0 +1,8 @@
+# Business context
+
+> Status: **planned**. Paths below are the agreed target layout; no code yet. Update when implemented.
+
+See `docs/project/budget.md` for all numbers. Summary:
+- Model `claude-sonnet-5-5`: $2 / MTok in, $10 / MTok out, cache read $0.20 / MTok.
+- App hard cap $60 Claude (`LLM_BUDGET_HARD_CAP_USD`), session cap $0.50, embeddings cap $3.
+- Defaults: `LLM_MODE=mock`, `effort=low`, per-node `max_tokens` (512 / 1024 / 768).

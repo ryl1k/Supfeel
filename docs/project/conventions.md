@@ -24,4 +24,5 @@
 
 ## Docs
 
+- Per-feature context lives in `docs/features/<feature>/` (10 files, see `docs/features/README.md`). Update it in the same commit as the code change.
 - After each sprint, update `docs/agents/context.md` (current state) and `docs/agents/sprint-log.md` (what changed). Also update any `docs/project/*` file whose facts changed.

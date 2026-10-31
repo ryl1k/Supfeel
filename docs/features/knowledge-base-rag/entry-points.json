@@ -1,0 +1,29 @@
+{
+  "feature": "knowledge-base-rag",
+  "status": "planned",
+  "cli": [
+    {
+      "command": "python -m app.rag.ingest",
+      "notes": "idempotent; run after editing knowledge-base/"
+    }
+  ],
+  "http": [
+    {
+      "method": "GET",
+      "path": "/api/admin/kb/search?q=",
+      "handler": "backend/app/api/admin.py:kb_search",
+      "notes": "debug retrieval"
+    }
+  ],
+  "code": [
+    "backend/app/rag/ingest.py",
+    "backend/app/rag/retrieve.py",
+    "backend/app/rag/embeddings.py"
+  ],
+  "content": [
+    "knowledge-base/"
+  ],
+  "tests": [
+    "backend/tests/rag/"
+  ]
+}

@@ -9,6 +9,8 @@ Append one entry per sprint (newest at the bottom).
 - Project docs: brief, architecture, design system, budget, roadmap, conventions
 - Velora knowledge base: returns/exchanges, refunds, shipping, payments, membership, warranty, account/privacy, agent authority (internal), sizing, care, general
 - Agent context: `CLAUDE.md`, `docs/agents/`
+- Per-feature context `docs/features/` (10-file structure) for resolution-agent, business-tools, knowledge-base-rag, llm-budget-guard, chat-experience, landing-page
+- Hosting decided: Vercel + Railway + Neon (pgvector replaces the in-process `.npz` plan)
 
 **Spend**: Claude $0.00, OpenAI $0.00
 

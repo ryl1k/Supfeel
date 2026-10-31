@@ -1,0 +1,9 @@
+{
+  "feature": "<name>",
+  "status": "planned",
+  "http": [{"method": "", "path": "", "handler": "path/to/file.py:function", "notes": ""}],
+  "routes": [{"path": "", "file": ""}],
+  "cli": [],
+  "code": [],
+  "tests": []
+}

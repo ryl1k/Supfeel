@@ -1,0 +1,30 @@
+{
+  "feature": "business-tools",
+  "status": "planned",
+  "http": [
+    {
+      "method": "POST",
+      "path": "/api/admin/reset",
+      "handler": "backend/app/api/admin.py:reset_demo",
+      "notes": "protected by ADMIN_TOKEN header"
+    },
+    {
+      "method": "GET",
+      "path": "/api/customers/demo",
+      "handler": "backend/app/api/admin.py:list_demo_customers",
+      "notes": "for the demo customer picker"
+    }
+  ],
+  "code": [
+    "backend/app/tools/registry.py",
+    "backend/app/tools/read.py",
+    "backend/app/tools/write.py",
+    "backend/app/tools/schemas.py",
+    "backend/app/db/models.py",
+    "backend/app/db/seed.py",
+    "backend/app/db/fixtures/"
+  ],
+  "tests": [
+    "backend/tests/tools/"
+  ]
+}

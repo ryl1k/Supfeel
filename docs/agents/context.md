@@ -18,6 +18,7 @@ _Last updated: 2026-10-31, end of Sprint 0._
 | `docs/project/budget.md` | Spend targets, per-call estimates, mandatory cost controls |
 | `docs/project/roadmap.md` | Sprints 0–4 |
 | `docs/project/conventions.md` | Git/commit/code rules |
+| `docs/features/` | Per-feature context (10 files each) for 6 planned features + `_template` |
 | `knowledge-base/` | 8 policy docs + 3 FAQ docs for the fictional store **Velora** |
 | `.env` (untracked) | Has `ANTHROPIC_API_KEY`, `OPENAI_API_KEY` |
 

@@ -1,0 +1,23 @@
+{
+  "feature": "llm-budget-guard",
+  "status": "planned",
+  "http": [
+    {
+      "method": "GET",
+      "path": "/api/admin/usage",
+      "handler": "backend/app/api/admin.py:usage_summary",
+      "notes": "totals by provider/node/day vs caps"
+    }
+  ],
+  "code": [
+    "backend/app/llm/client.py",
+    "backend/app/llm/pricing.py",
+    "backend/app/llm/ledger.py",
+    "backend/app/llm/replay.py",
+    "backend/app/llm/mock_responses/",
+    "backend/app/config.py"
+  ],
+  "tests": [
+    "backend/tests/llm/"
+  ]
+}
