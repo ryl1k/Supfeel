@@ -54,3 +54,4 @@ Update after each sprint (from `GET /api/admin/usage`, which sums `llm_usage`).
 | Sprint | Claude $ | OpenAI $ | Notes |
 |---|---|---|---|
 | 0 | 0.00 | 0.00 | Docs + KB only |
+| 1 | 0.00 | 0.00 | All work in mock mode (hash embeddings, no Claude calls) |

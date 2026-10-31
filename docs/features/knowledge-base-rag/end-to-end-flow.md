@@ -1,6 +1,6 @@
 # End-to-end flow
 
-> Status: **planned**. Paths below are the agreed target layout; no code yet. Update when implemented.
+> Status: **done** (Sprint 1). Paths below are real; keep them in sync with the code.
 
 **Ingest** (`python -m app.rag.ingest`):
 1. Walk `knowledge-base/`, parse frontmatter, split on `##` → chunks `{doc_id, heading, text, audience, tags}`.

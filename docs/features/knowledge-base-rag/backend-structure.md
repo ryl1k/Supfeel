@@ -1,11 +1,12 @@
 # Backend structure
 
-> Status: **planned**. Paths below are the agreed target layout; no code yet. Update when implemented.
+> Status: **done** (Sprint 1). Paths below are real; keep them in sync with the code.
 
 ```
 backend/app/rag/
-  embeddings.py  embed(texts) → batching, OpenAI client, cost logging to llm_usage (provider=openai),
-                 cache lookup/insert
+  embeddings.py  embed(texts): mock-hash-v1 (LLM_MODE=mock or no key) or OpenAI with embedding_cache +
+                 ledger (provider=openai) + cap check
   ingest.py      chunking + hashing + upsert; CLI entry
-  retrieve.py    retrieve(query, k, audience=None) → list[Chunk]
+  retrieve.py    retrieve(query, k, audience=None, min_score) → list[RetrievedChunk];
+                 get_section(doc_id, heading_prefix) pins a must-have policy section
 ```

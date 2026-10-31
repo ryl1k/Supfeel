@@ -8,12 +8,13 @@ Each sprint ends with: docs updated (`docs/agents/`), spend logged (`budget.md`)
 - Support knowledge base for the demo store (Velora)
 - Agent context docs
 
-## Sprint 1: Backend core
+## Sprint 1: Backend core ✅
 - FastAPI skeleton, config, health endpoint
 - Central LLM client with budget guard, ledger, `mock`/`replay`/`live` modes
 - Mock business systems: Postgres (Neon) schema + seed fixtures (customers, orders, shipments, payments, products, subscriptions)
 - Tool layer (read + write) with unit tests
 - KB ingestion: chunk → embed → `kb_chunks` (pgvector); retrieval function
+- Admin API: demo customers, reset, usage, KB search
 
 ## Sprint 2: Agent
 - LangGraph graph: understand → investigate → retrieve_policy → plan → act → verify → respond

@@ -1,6 +1,6 @@
 # Integration points
 
-> Status: **planned**. Paths below are the agreed target layout; no code yet. Update when implemented.
+> Status: **done** (Sprint 1). Paths below are real; keep them in sync with the code.
 
 - **resolution-agent** `retrieve_policy` node → `retrieve()`.
 - **llm-budget-guard** — embedding spend recorded in `llm_usage` with `provider="openai"`; capped by

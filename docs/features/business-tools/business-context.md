@@ -1,6 +1,6 @@
 # Business context
 
-> Status: **planned**. Paths below are the agreed target layout; no code yet. Update when implemented.
+> Status: **done** (Sprint 1). Paths below are real; keep them in sync with the code.
 
 - Tools enforce **hard invariants** (e.g. cannot cancel a shipped order, cannot refund more than paid),
   returning a typed error; the agent enforces **policy** (windows, thresholds) from the KB.

@@ -1,6 +1,6 @@
 # Business tools (mock Velora systems)
 
-> Status: **planned**. Paths below are the agreed target layout; no code yet. Update when implemented.
+> Status: **done** (Sprint 1). Paths below are real; keep them in sync with the code.
 
 A mock of the systems a real store would expose — customers, orders, shipments, payments, products,
 memberships — plus the read/write tools the agent uses to act on them.

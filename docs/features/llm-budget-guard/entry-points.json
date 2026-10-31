@@ -1,6 +1,6 @@
 {
   "feature": "llm-budget-guard",
-  "status": "planned",
+  "status": "done",
   "http": [
     {
       "method": "GET",
@@ -13,11 +13,9 @@
     "backend/app/llm/client.py",
     "backend/app/llm/pricing.py",
     "backend/app/llm/ledger.py",
-    "backend/app/llm/replay.py",
-    "backend/app/llm/mock_responses/",
     "backend/app/config.py"
   ],
   "tests": [
-    "backend/tests/llm/"
+    "backend/tests/llm/test_budget_guard.py"
   ]
 }

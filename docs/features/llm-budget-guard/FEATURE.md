@@ -1,6 +1,6 @@
 # LLM budget guard
 
-> Status: **planned**. Paths below are the agreed target layout; no code yet. Update when implemented.
+> Status: **done** (Sprint 1). Paths below are real; keep them in sync with the code.
 
 The single gateway for every Claude and OpenAI call: enforces spend caps, logs usage, applies prompt
 caching, and switches between `mock` / `replay` / `live` modes.

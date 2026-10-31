@@ -1,6 +1,6 @@
 # Knowledge base RAG
 
-> Status: **planned**. Paths below are the agreed target layout; no code yet. Update when implemented.
+> Status: **done** (Sprint 1). Paths below are real; keep them in sync with the code.
 
 Retrieves Velora policy and FAQ chunks so the agent's decisions are grounded in written policy
 and can cite it.

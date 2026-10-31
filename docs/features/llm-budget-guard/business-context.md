@@ -1,6 +1,6 @@
 # Business context
 
-> Status: **planned**. Paths below are the agreed target layout; no code yet. Update when implemented.
+> Status: **done** (Sprint 1). Paths below are real; keep them in sync with the code.
 
 See `docs/project/budget.md` for all numbers. Summary:
 - Model `claude-sonnet-5-5`: $2 / MTok in, $10 / MTok out, cache read $0.20 / MTok.

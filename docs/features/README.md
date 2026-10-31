@@ -22,9 +22,9 @@ New feature: `cp -r docs/features/_template docs/features/<name>`, fill in all 1
 | Feature | Status | Summary |
 |---|---|---|
 | [resolution-agent](resolution-agent/FEATURE.md) | planned | LangGraph loop: understand → investigate → policy → plan → act → verify → respond |
-| [business-tools](business-tools/FEATURE.md) | planned | Mock Velora systems (Postgres) + read/write tools + demo reset |
-| [knowledge-base-rag](knowledge-base-rag/FEATURE.md) | planned | Chunk + embed `knowledge-base/` into pgvector; top-k retrieval |
-| [llm-budget-guard](llm-budget-guard/FEATURE.md) | planned | Single LLM gateway: caps, usage ledger, caching, mock/replay/live |
+| [business-tools](business-tools/FEATURE.md) | done | Mock Velora systems (Postgres) + read/write tools + demo reset |
+| [knowledge-base-rag](knowledge-base-rag/FEATURE.md) | done | Chunk + embed `knowledge-base/` into pgvector; top-k retrieval |
+| [llm-budget-guard](llm-budget-guard/FEATURE.md) | done | Single LLM gateway: caps, usage ledger, caching, mock/replay/live |
 | [chat-experience](chat-experience/FEATURE.md) | planned | `/chat` UI: streaming, action trail, confirmations, recommendations |
 | [landing-page](landing-page/FEATURE.md) | planned | `/` hero matching the design reference |
 

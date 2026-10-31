@@ -1,6 +1,6 @@
 # End-to-end flow
 
-> Status: **planned**. Paths below are the agreed target layout; no code yet. Update when implemented.
+> Status: **done** (Sprint 1). Paths below are real; keep them in sync with the code.
 
 1. Agent calls `registry.call("create_exchange", {...})`.
 2. Registry validates input (pydantic) → runs tool in a DB transaction → writes `action_log`.
