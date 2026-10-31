@@ -1,0 +1,24 @@
+{
+  "feature": "assisted-actions",
+  "status": "done",
+  "http": [
+    {"method": "POST", "path": "/api/tickets/{ticket_id}/confirm", "handler": "backend/app/api/tickets.py:confirm", "notes": "SSE; approve or decline the pending action"},
+    {"method": "PATCH", "path": "/api/repos/{repo_id}/settings", "handler": "backend/app/api/repos.py:update_settings", "notes": "api_base_url, api_token, api_spec_url"},
+    {"method": "*", "path": "/demo-store/*", "handler": "backend/app/main.py:_mount_demo_store", "notes": "Slice demo API (examples/slice-pizza/slice_api/main.py), MOUNT_DEMO_STORE"},
+    {"method": "POST", "path": "/demo-store/admin/reset", "handler": "examples/slice-pizza/slice_api/main.py:reset", "notes": "reset demo data (not in the spec)"}
+  ],
+  "code": [
+    "backend/app/support/assist.py",
+    "backend/app/support/graph.py:assist_node",
+    "backend/app/support/graph.py:act_node",
+    "backend/app/main.py:_mount_demo_store",
+    "examples/slice-pizza/slice_api/main.py",
+    "examples/slice-pizza/slice_api/store.py",
+    "examples/slice-pizza/openapi.json"
+  ],
+  "tests": [
+    "backend/tests/support/test_tickets.py",
+    "backend/tests/support/conftest.py",
+    "examples/slice-pizza/tests/test_orders.py"
+  ]
+}

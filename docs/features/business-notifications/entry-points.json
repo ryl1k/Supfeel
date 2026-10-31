@@ -1,0 +1,24 @@
+{
+  "feature": "business-notifications",
+  "status": "done",
+  "http": [
+    {"method": "GET", "path": "/api/notifications", "handler": "backend/app/api/tickets.py:notifications", "notes": "repo_id, limit (max 500); newest first"}
+  ],
+  "pages": [
+    {"route": "/app/inbox", "file": "frontend/app/app/inbox/page.tsx", "component": "frontend/components/app/Lists.tsx:Inbox"}
+  ],
+  "cli": [
+    {"command": "uv run python -m scripts.telegram_setup", "notes": "find TELEGRAM_CHAT_ID and send a test message"}
+  ],
+  "code": [
+    "backend/app/support/notify.py",
+    "backend/app/support/service.py:list_notifications",
+    "backend/app/support/service.py:notification_view",
+    "backend/scripts/telegram_setup.py",
+    "frontend/components/app/Lists.tsx",
+    "frontend/components/app/TicketView.tsx:NotificationItem"
+  ],
+  "tests": [
+    "backend/tests/support/test_tickets.py"
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "feature": "repo-indexing",
+  "status": "done",
+  "http": [
+    {"method": "POST", "path": "/api/repos", "handler": "backend/app/api/repos.py:import_repo", "notes": "admin token unless OPEN_IMPORT; body {repo | local_path, branch}"},
+    {"method": "GET", "path": "/api/repos", "handler": "backend/app/api/repos.py:list_repos", "notes": "repo cards"},
+    {"method": "GET", "path": "/api/repos/{repo_id}", "handler": "backend/app/api/repos.py:get_repo", "notes": "overview, modules, api_operations, latest job"},
+    {"method": "GET", "path": "/api/repos/{repo_id}/jobs", "handler": "backend/app/api/repos.py:list_jobs", "notes": "index runs"},
+    {"method": "GET", "path": "/api/jobs/{job_id}/trace", "handler": "backend/app/api/repos.py:job_trace", "notes": "spans of one index job"},
+    {"method": "POST", "path": "/api/repos/{repo_id}/reindex", "handler": "backend/app/api/repos.py:reindex", "notes": "admin token unless OPEN_IMPORT"},
+    {"method": "PATCH", "path": "/api/repos/{repo_id}/settings", "handler": "backend/app/api/repos.py:update_settings", "notes": "admin token; api_base_url, api_token, api_spec_url, auto_fix, business_name"},
+    {"method": "GET", "path": "/api/repos/{repo_id}/search", "handler": "backend/app/api/repos.py:search_repo", "notes": "q, k (max 25), kind"},
+    {"method": "POST", "path": "/api/repos/{repo_id}/ask", "handler": "backend/app/api/repos.py:ask_repo", "notes": "grounded Q&A with citations"},
+    {"method": "GET", "path": "/api/repos/{repo_id}/files", "handler": "backend/app/api/repos.py:list_files", "notes": "prefix filter, max 3000"},
+    {"method": "GET", "path": "/api/repos/{repo_id}/file", "handler": "backend/app/api/repos.py:get_file", "notes": "content + outline"},
+    {"method": "GET", "path": "/api/github/status", "handler": "backend/app/api/repos.py:github_status", "notes": "auth mode, App install URL"},
+    {"method": "POST", "path": "/api/github/webhook", "handler": "backend/app/api/github.py:webhook", "notes": "push to default branch -> start_job(trigger=push)"}
+  ],
+  "pages": [
+    {"route": "/app", "file": "frontend/app/app/page.tsx", "component": "frontend/components/app/Workspace.tsx"},
+    {"route": "/app/repos/[id]", "file": "frontend/app/app/repos/[id]/page.tsx", "component": "frontend/components/app/RepoView.tsx"}
+  ],
+  "code": [
+    "backend/app/repos/source.py",
+    "backend/app/repos/chunker.py",
+    "backend/app/repos/openapi.py",
+    "backend/app/repos/explain.py",
+    "backend/app/repos/indexer.py",
+    "backend/app/repos/search.py",
+    "backend/app/repos/ask.py",
+    "backend/app/repos/github.py",
+    "backend/app/boot.py:main"
+  ],
+  "tests": [
+    "backend/tests/repos/test_indexing.py",
+    "backend/tests/support/conftest.py"
+  ]
+}

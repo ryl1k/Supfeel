@@ -1,0 +1,36 @@
+{
+  "feature": "ticket-resolution",
+  "status": "done",
+  "http": [
+    {"method": "POST", "path": "/api/repos/{repo_id}/tickets", "handler": "backend/app/api/tickets.py:create_ticket", "notes": "SSE; body {customer: {name, email, ref}, message}"},
+    {"method": "POST", "path": "/api/tickets/{ticket_id}/messages", "handler": "backend/app/api/tickets.py:follow_up", "notes": "SSE; body {message}"},
+    {"method": "POST", "path": "/api/tickets/{ticket_id}/confirm", "handler": "backend/app/api/tickets.py:confirm", "notes": "SSE; body {approved}"},
+    {"method": "GET", "path": "/api/tickets", "handler": "backend/app/api/tickets.py:list_tickets", "notes": "repo_id, status, limit (max 500)"},
+    {"method": "GET", "path": "/api/tickets/{ticket_id}", "handler": "backend/app/api/tickets.py:get_ticket", "notes": "messages, actions, fix, notifications"},
+    {"method": "GET", "path": "/api/tickets/{ticket_id}/trace", "handler": "backend/app/api/tickets.py:ticket_trace", "notes": "all turns of the ticket"}
+  ],
+  "pages": [
+    {"route": "/support/[repoId]", "file": "frontend/app/support/[repoId]/page.tsx", "component": "frontend/components/support/SupportChat.tsx"},
+    {"route": "/app/tickets", "file": "frontend/app/app/tickets/page.tsx", "component": "frontend/components/app/Lists.tsx:AllTickets"},
+    {"route": "/app/tickets/[id]", "file": "frontend/app/app/tickets/[id]/page.tsx", "component": "frontend/components/app/TicketView.tsx"}
+  ],
+  "cli": [
+    {"command": "LLM_MODE=live uv run python -m scripts.live_support_smoke", "notes": "real Claude + OpenAI, one ticket per route (~$0.5-1.5 cold)"}
+  ],
+  "code": [
+    "backend/app/support/graph.py:build_graph",
+    "backend/app/support/service.py",
+    "backend/app/support/state.py",
+    "backend/app/support/schemas.py",
+    "backend/app/support/context.py",
+    "backend/app/support/triage.py",
+    "backend/app/support/learn.py",
+    "backend/app/agent/events.py",
+    "frontend/lib/useTicketChat.ts",
+    "frontend/lib/workspace.ts"
+  ],
+  "tests": [
+    "backend/tests/support/test_tickets.py",
+    "backend/tests/support/conftest.py"
+  ]
+}
