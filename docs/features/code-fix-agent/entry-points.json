@@ -11,10 +11,13 @@
     "backend/app/support/graph.py:fix_node",
     "backend/app/api/github.py",
     "backend/app/repos/github.py",
-    "backend/app/llm/client.py:tool_turn"
+    "backend/app/llm/client.py:tool_turn",
+    "backend/app/support/callbacks.py:fire",
+    "backend/app/accounts/billing.py:refund"
   ],
   "tests": [
-    "backend/tests/support/test_tickets.py"
+    "backend/tests/support/test_tickets.py",
+    "backend/tests/test_billing.py"
   ],
   "docs": [
     "docs/project/github-app-setup.md",

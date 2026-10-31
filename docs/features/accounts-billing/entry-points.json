@@ -1,0 +1,37 @@
+{
+  "feature": "accounts-billing",
+  "status": "done",
+  "http": [
+    {"method": "POST", "path": "/api/auth/signup", "handler": "backend/app/api/accounts.py:signup", "notes": "201 {token, user, account}; 409 if the email exists; $5 grant"},
+    {"method": "POST", "path": "/api/auth/login", "handler": "backend/app/api/accounts.py:login", "notes": "401 on wrong credentials"},
+    {"method": "POST", "path": "/api/auth/logout", "handler": "backend/app/api/accounts.py:logout", "notes": "deletes the session"},
+    {"method": "GET", "path": "/api/me", "handler": "backend/app/api/accounts.py:me", "notes": "user, account, billing summary"},
+    {"method": "GET", "path": "/api/billing", "handler": "backend/app/api/accounts.py:get_billing", "notes": "summary + statement (100)"},
+    {"method": "POST", "path": "/api/billing/topup", "handler": "backend/app/api/accounts.py:topup", "notes": "{amount_cents 500-50000, card?}; 402 declined / no card"},
+    {"method": "PUT", "path": "/api/billing/card", "handler": "backend/app/api/accounts.py:save_card", "notes": "mock card"},
+    {"method": "PATCH", "path": "/api/billing/settings", "handler": "backend/app/api/accounts.py:billing_settings", "notes": "monthly_limit_cents, auto_recharge_enabled / threshold_cents / amount_cents"}
+  ],
+  "pages": [
+    {"route": "/login", "file": "frontend/app/login/page.tsx", "component": "frontend/components/auth/AuthForm.tsx"},
+    {"route": "/signup", "file": "frontend/app/signup/page.tsx", "component": "frontend/components/auth/AuthForm.tsx"},
+    {"route": "/app/billing", "file": "frontend/app/app/billing/page.tsx", "component": "frontend/components/app/BillingView.tsx"}
+  ],
+  "code": [
+    "backend/app/accounts/context.py",
+    "backend/app/accounts/auth.py",
+    "backend/app/accounts/billing.py",
+    "backend/app/db/models.py:Account",
+    "backend/app/db/models.py:CreditEntry",
+    "backend/app/db/seed.py:init_db",
+    "backend/app/llm/ledger.py",
+    "backend/app/support/service.py:open_ticket",
+    "backend/app/support/graph.py:fix_node",
+    "frontend/lib/session.ts",
+    "frontend/lib/workspace.ts",
+    "frontend/components/app/Shell.tsx"
+  ],
+  "tests": [
+    "backend/tests/test_billing.py",
+    "backend/tests/support/test_mcp.py"
+  ]
+}

@@ -1,8 +1,9 @@
 # Frontend structure
 
-> Status: **done** (Sprint 5). Paths below are real; keep them in sync with the code.
+> Status: **done** (Sprint 5, updated in Sprint 6). Paths below are real; keep them in sync with the code.
 
-- `frontend/app/support/[repoId]/page.tsx` → `components/support/SupportChat.tsx`: customer chat. For the Slice
+- `frontend/app/support/[repoId]/page.tsx` → `components/support/SupportChat.tsx`: the owner's playground (redirects to
+  `/login?next=` when signed out; stream calls send `authHeaders()`). For the Slice
   demo (repo name matches `/slice/` or it has a `create_order` operation) it offers demo customers
   (`c_maya`, `c_jordan`) and sample prompts; otherwise a name + account-id form. Renders `StepTrail`,
   `ProposalCard` (approve/decline), `VerifiedCard`, `FixCard`.

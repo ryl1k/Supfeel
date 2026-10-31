@@ -1,10 +1,11 @@
 # End-to-end flow
 
-> Status: **done** (Sprint 5). Paths below are real; keep them in sync with the code.
+> Status: **done** (Sprint 5, updated in Sprint 6). Paths below are real; keep them in sync with the code.
 
-1. `graph.fix_node` builds a report (subject, message, recent history, triage `bug_hypothesis`) →
-   `fixer.investigate()` (span "fix agent").
-2. `run_agent()`: up to `FIX_MAX_TURNS` calls of `tool_turn(node="fix_agent")`. Tools: `search_code`, `read_file`
+1. `graph.fix_node` builds a report (subject, message, recent history, triage `bug_hypothesis`), charges `fix`
+   (on `PaymentRequired`: `report_only()` instead), then `fixer.investigate()` (span "fix agent"); a `report`
+   result is refunded.
+2. `run_agent()`: up to `FIX_MAX_TURNS` calls of `tool_turn(node="fix_agent", conversation_id=f"{ticket}:fix")`. Tools: `search_code`, `read_file`
    (numbered, ≤ 400 lines), `list_files`, `edit_file` (unique `old_str`), `create_file`, and terminal `finish`,
    `not_a_bug`, `give_up`. Each tool call is a `fix tool <name>` span and a `step fix running` event.
    Edits land in `Workspace` (overlay over `repo_files`), not on disk or GitHub.
@@ -19,6 +20,9 @@
 6. **CI** (`ci.refresh`, span "check ci" with `trace_id` = ticket): `ci_status(head_sha)` merges check runs and
    commit statuses into `none`/`pending`/`success`/`failure`. On a new terminal state: `fix_verified` +
    `ci_passed`, or `fix_failed` + `ci_failed`. Webhooks `check_suite` / `check_run` / `workflow_run` / `status`
-   trigger an immediate refresh via `ci.tickets_for(sha=…)`.
+   trigger an immediate refresh via `ci.tickets_for(sha=…)`. A status change fires `callbacks.fire()` (MCP
+   `callback_url`). No checks for `NO_CI_POLLS` polls, or polling exhausted → `_unverified()`: `ci.state=none` +
+   note, `ci_missing` notification; the ticket stays `fix_in_review`. On boot `resume_tracking()` restarts
+   pollers for `fix_in_review` tickets with CI `pending` / unknown.
 7. **PR closed** webhook on a `supfeel/` branch → `ci.on_pr_closed()`: merged → `resolved`, agent message,
-   `pr_merged` notification, `service.learn_ticket()`; not merged → `escalated`.
+   callback `resolved`, `pr_merged` notification, `service.learn_ticket()`; not merged → `escalated`.

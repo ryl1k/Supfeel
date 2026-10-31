@@ -2,22 +2,23 @@
   "feature": "repo-indexing",
   "status": "done",
   "http": [
-    {"method": "POST", "path": "/api/repos", "handler": "backend/app/api/repos.py:import_repo", "notes": "admin token unless OPEN_IMPORT; body {repo | local_path, branch}"},
-    {"method": "GET", "path": "/api/repos", "handler": "backend/app/api/repos.py:list_repos", "notes": "repo cards"},
+    {"method": "POST", "path": "/api/repos", "handler": "backend/app/api/repos.py:import_repo", "notes": "signed-in; charged index; body {repo | local_path, branch}; local_path needs ALLOW_LOCAL_REPOS + (admin or OPEN_IMPORT)"},
+    {"method": "GET", "path": "/api/repos", "handler": "backend/app/api/repos.py:list_repos", "notes": "the account's repos"},
     {"method": "GET", "path": "/api/repos/{repo_id}", "handler": "backend/app/api/repos.py:get_repo", "notes": "overview, modules, api_operations, latest job"},
+    {"method": "DELETE", "path": "/api/repos/{repo_id}", "handler": "backend/app/api/repos.py:delete_repo", "notes": "repo_for; cascades to files, chunks, docs, jobs, tickets, keys, notifications"},
     {"method": "GET", "path": "/api/repos/{repo_id}/jobs", "handler": "backend/app/api/repos.py:list_jobs", "notes": "index runs"},
     {"method": "GET", "path": "/api/jobs/{job_id}/trace", "handler": "backend/app/api/repos.py:job_trace", "notes": "spans of one index job"},
-    {"method": "POST", "path": "/api/repos/{repo_id}/reindex", "handler": "backend/app/api/repos.py:reindex", "notes": "admin token unless OPEN_IMPORT"},
-    {"method": "PATCH", "path": "/api/repos/{repo_id}/settings", "handler": "backend/app/api/repos.py:update_settings", "notes": "admin token; api_base_url, api_token, api_spec_url, auto_fix, business_name"},
+    {"method": "POST", "path": "/api/repos/{repo_id}/reindex", "handler": "backend/app/api/repos.py:reindex", "notes": "repo_for; charged index"},
+    {"method": "PATCH", "path": "/api/repos/{repo_id}/settings", "handler": "backend/app/api/repos.py:update_settings", "notes": "repo_for; api_base_url, api_token, api_spec_url, auto_fix, business_name"},
     {"method": "GET", "path": "/api/repos/{repo_id}/search", "handler": "backend/app/api/repos.py:search_repo", "notes": "q, k (max 25), kind"},
-    {"method": "POST", "path": "/api/repos/{repo_id}/ask", "handler": "backend/app/api/repos.py:ask_repo", "notes": "grounded Q&A with citations"},
+    {"method": "POST", "path": "/api/repos/{repo_id}/ask", "handler": "backend/app/api/repos.py:ask_repo", "notes": "repo_for; charged ask; grounded Q&A with citations"},
     {"method": "GET", "path": "/api/repos/{repo_id}/files", "handler": "backend/app/api/repos.py:list_files", "notes": "prefix filter, max 3000"},
     {"method": "GET", "path": "/api/repos/{repo_id}/file", "handler": "backend/app/api/repos.py:get_file", "notes": "content + outline"},
-    {"method": "GET", "path": "/api/github/status", "handler": "backend/app/api/repos.py:github_status", "notes": "auth mode, App install URL"},
+    {"method": "GET", "path": "/api/github/status", "handler": "backend/app/api/repos.py:github_status", "notes": "auth mode, App install URL, demo offer"},
     {"method": "POST", "path": "/api/github/webhook", "handler": "backend/app/api/github.py:webhook", "notes": "push to default branch -> start_job(trigger=push)"}
   ],
   "pages": [
-    {"route": "/app", "file": "frontend/app/app/page.tsx", "component": "frontend/components/app/Workspace.tsx"},
+    {"route": "/app", "file": "frontend/app/app/page.tsx", "component": "frontend/components/app/Board.tsx"},
     {"route": "/app/repos/[id]", "file": "frontend/app/app/repos/[id]/page.tsx", "component": "frontend/components/app/RepoView.tsx"}
   ],
   "code": [
@@ -29,7 +30,8 @@
     "backend/app/repos/search.py",
     "backend/app/repos/ask.py",
     "backend/app/repos/github.py",
-    "backend/app/boot.py:main"
+    "backend/app/boot.py:main",
+    "backend/app/accounts/auth.py:repo_for"
   ],
   "tests": [
     "backend/tests/repos/test_indexing.py",

@@ -1,6 +1,6 @@
 # Per-app responsibility
 
-> Status: **done** (Sprint 5). Paths below are real; keep them in sync with the code.
+> Status: **done** (Sprint 5, updated in Sprint 6). Paths below are real; keep them in sync with the code.
 
 | App | Responsibility |
 |---|---|
@@ -9,4 +9,4 @@
 | GitHub | Repo metadata, branch head, tarball (one request per job), push webhooks |
 | OpenAI | `text-embedding-3-small` for chunks (cached in `embedding_cache`) |
 | Claude | Module summaries, overview, `/ask` answers (all optional; rules fallback) |
-| frontend | Import form, repo cards with job progress, repo page tabs (overview, modules, ask, API, tickets, index runs, settings) |
+| frontend | Import form, repo cards with job progress, repo page tabs (overview, connect, modules, ask, API, tickets, index runs, settings) |

@@ -25,6 +25,9 @@ New feature: `cp -r docs/features/_template docs/features/<name>`, fill in all 1
 | [ticket-resolution](ticket-resolution/FEATURE.md) | done | Ticket graph: context → triage → explain / assist / fix / feature / escalate → streamed reply; learning |
 | [assisted-actions](assisted-actions/FEATURE.md) | done | Act through the business's OpenAPI with customer scoping, confirmation and read-back verification |
 | [code-fix-agent](code-fix-agent/FEATURE.md) | done | Claude tool-use agent fixes the bug, opens a PR; CI is the verification; merge resolves the ticket |
+| [mcp-server](mcp-server/FEATURE.md) | done (Sprint 6) | MCP endpoint `/mcp` for the business's first-line agent: escalate / reply / confirm, relay-ready results, callbacks |
+| [accounts-billing](accounts-billing/FEATURE.md) | done (Sprint 6) | Email + password workspaces, MCP keys, repo scoping; pay-as-you-go credits, monthly limit, auto-recharge (mock payments) |
+| [workspace-board](workspace-board/FEATURE.md) | done (Sprint 6) | Board with onboarding checklist and charts, `/app/welcome` setup wizard, motion, landing escalation story + pricing |
 | [observability-traces](observability-traces/FEATURE.md) | done | Postgres spans for every step, model call, search, API and GitHub request; flow graph + waterfall |
 | [business-notifications](business-notifications/FEATURE.md) | done | Dashboard inbox mirrored to Telegram / Slack / Discord |
 | [llm-budget-guard](llm-budget-guard/FEATURE.md) | done | Single LLM gateway: caps, usage ledger, caching, mock/replay/live, `tool_turn` |

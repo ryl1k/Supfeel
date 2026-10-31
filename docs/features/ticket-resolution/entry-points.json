@@ -2,12 +2,13 @@
   "feature": "ticket-resolution",
   "status": "done",
   "http": [
-    {"method": "POST", "path": "/api/repos/{repo_id}/tickets", "handler": "backend/app/api/tickets.py:create_ticket", "notes": "SSE; body {customer: {name, email, ref}, message}"},
-    {"method": "POST", "path": "/api/tickets/{ticket_id}/messages", "handler": "backend/app/api/tickets.py:follow_up", "notes": "SSE; body {message}"},
-    {"method": "POST", "path": "/api/tickets/{ticket_id}/confirm", "handler": "backend/app/api/tickets.py:confirm", "notes": "SSE; body {approved}"},
-    {"method": "GET", "path": "/api/tickets", "handler": "backend/app/api/tickets.py:list_tickets", "notes": "repo_id, status, limit (max 500)"},
-    {"method": "GET", "path": "/api/tickets/{ticket_id}", "handler": "backend/app/api/tickets.py:get_ticket", "notes": "messages, actions, fix, notifications"},
-    {"method": "GET", "path": "/api/tickets/{ticket_id}/trace", "handler": "backend/app/api/tickets.py:ticket_trace", "notes": "all turns of the ticket"}
+    {"method": "POST", "path": "/api/repos/{repo_id}/tickets", "handler": "backend/app/api/tickets.py:create_ticket", "notes": "signed-in owner (CurrentPrincipal, scoped by repo_for); SSE; body {customer: {name, email, ref}, message}"},
+    {"method": "POST", "path": "/api/tickets/{ticket_id}/messages", "handler": "backend/app/api/tickets.py:follow_up", "notes": "signed-in owner (CurrentPrincipal, scoped by repo_for); SSE; body {message}"},
+    {"method": "POST", "path": "/api/tickets/{ticket_id}/confirm", "handler": "backend/app/api/tickets.py:confirm", "notes": "signed-in owner (CurrentPrincipal, scoped by repo_for); SSE; body {approved}"},
+    {"method": "GET", "path": "/api/tickets", "handler": "backend/app/api/tickets.py:list_tickets", "notes": "signed-in owner (CurrentPrincipal, scoped by repo_for); repo_id (else all the account's repos), status, limit (max 500)"},
+    {"method": "GET", "path": "/api/tickets/{ticket_id}", "handler": "backend/app/api/tickets.py:get_ticket", "notes": "signed-in owner (CurrentPrincipal, scoped by repo_for); messages, actions, fix, notifications"},
+    {"method": "GET", "path": "/api/tickets/{ticket_id}/trace", "handler": "backend/app/api/tickets.py:ticket_trace", "notes": "signed-in owner (CurrentPrincipal, scoped by repo_for); all turns of the ticket"},
+    {"method": "GET", "path": "/api/notifications", "handler": "backend/app/api/tickets.py:notifications", "notes": "signed-in; repo_id or all the account's repos; limit (max 500)"}
   ],
   "pages": [
     {"route": "/support/[repoId]", "file": "frontend/app/support/[repoId]/page.tsx", "component": "frontend/components/support/SupportChat.tsx"},
@@ -20,6 +21,7 @@
   "code": [
     "backend/app/support/graph.py:build_graph",
     "backend/app/support/service.py",
+    "backend/app/support/service.py:open_ticket",
     "backend/app/support/state.py",
     "backend/app/support/schemas.py",
     "backend/app/support/context.py",
@@ -31,6 +33,7 @@
   ],
   "tests": [
     "backend/tests/support/test_tickets.py",
-    "backend/tests/support/conftest.py"
+    "backend/tests/support/conftest.py",
+    "backend/tests/support/test_mcp.py"
   ]
 }
