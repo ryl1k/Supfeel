@@ -48,6 +48,15 @@ async def init_db() -> None:
                 "ON kb_chunks USING hnsw (embedding vector_cosine_ops)"
             )
         )
+        # Idempotent column additions for databases created before these columns existed.
+        for stmt in (
+            "ALTER TABLE repos ADD COLUMN IF NOT EXISTS account_id VARCHAR(40) REFERENCES accounts(id) ON DELETE CASCADE",
+            "ALTER TABLE llm_usage ADD COLUMN IF NOT EXISTS account_id VARCHAR(40)",
+            "CREATE INDEX IF NOT EXISTS ix_llm_usage_account_id ON llm_usage (account_id)",
+            "ALTER TABLE tickets ADD COLUMN IF NOT EXISTS channel VARCHAR(20) NOT NULL DEFAULT 'web'",
+            "ALTER TABLE tickets ADD COLUMN IF NOT EXISTS meta JSONB NOT NULL DEFAULT '{}'::jsonb",
+        ):
+            await conn.execute(text(stmt))
         await conn.execute(
             text(
                 "CREATE INDEX IF NOT EXISTS repo_chunks_embedding_hnsw "

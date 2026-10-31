@@ -246,6 +246,7 @@ class LlmUsage(Base):
     model: Mapped[str] = mapped_column(String(60))
     node: Mapped[str] = mapped_column(String(40))
     conversation_id: Mapped[str | None] = mapped_column(String(60), nullable=True)
+    account_id: Mapped[str | None] = mapped_column(String(40), nullable=True, index=True)
     mode: Mapped[str] = mapped_column(String(10))
     input_tokens: Mapped[int] = mapped_column(Integer, default=0)
     output_tokens: Mapped[int] = mapped_column(Integer, default=0)
@@ -277,12 +278,81 @@ class EmbeddingCache(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
 
+# --------------------------------------------------------------------------- accounts, keys, plans (mock billing)
+
+
+class Account(Base):
+    """A workspace: owns repositories, MCP keys and a prepaid credit balance (pay as you go, mocked payments)."""
+
+    __tablename__ = "accounts"
+    id: Mapped[str] = mapped_column(String(40), primary_key=True)
+    name: Mapped[str] = mapped_column(String(120))
+    monthly_limit_cents: Mapped[int] = mapped_column(Integer, default=5000)  # spend cap per calendar month
+    payment_method: Mapped[dict[str, Any]] = mapped_column(default=dict)  # mock: {"brand", "last4", "name"}
+    auto_recharge: Mapped[dict[str, Any]] = mapped_column(
+        default=dict
+    )  # {"enabled", "threshold_cents", "amount_cents"}
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class User(Base):
+    __tablename__ = "users"
+    id: Mapped[str] = mapped_column(String(40), primary_key=True)
+    account_id: Mapped[str] = mapped_column(ForeignKey("accounts.id", ondelete="CASCADE"), index=True)
+    email: Mapped[str] = mapped_column(String(200), unique=True)
+    name: Mapped[str] = mapped_column(String(120))
+    password_hash: Mapped[str] = mapped_column(String(200))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class UserSession(Base):
+    __tablename__ = "user_sessions"
+    token_hash: Mapped[str] = mapped_column(String(64), primary_key=True)
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class ApiKey(Base):
+    """MCP / API key, scoped to one repository. Only a hash is stored; the key is shown once."""
+
+    __tablename__ = "api_keys"
+    id: Mapped[str] = mapped_column(String(40), primary_key=True)
+    account_id: Mapped[str] = mapped_column(ForeignKey("accounts.id", ondelete="CASCADE"), index=True)
+    repo_id: Mapped[str] = mapped_column(ForeignKey("repos.id", ondelete="CASCADE"), index=True)
+    name: Mapped[str] = mapped_column(String(120))  # e.g. "Intercom bot", "Claude Code"
+    prefix: Mapped[str] = mapped_column(String(20))  # shown in the UI: "sf_live_ab12…"
+    key_hash: Mapped[str] = mapped_column(String(64), unique=True)
+    last_used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    revoked: Mapped[bool] = mapped_column(Boolean, default=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class CreditEntry(Base):
+    """Credit ledger: balance = sum(amount_cents). Grants and top-ups are positive, usage is negative."""
+
+    __tablename__ = "credit_entries"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    account_id: Mapped[str] = mapped_column(ForeignKey("accounts.id", ondelete="CASCADE"), index=True)
+    kind: Mapped[str] = mapped_column(String(20))  # grant | topup | usage | refund
+    metric: Mapped[str | None] = mapped_column(String(20), nullable=True)  # ticket | fix | ask | index
+    quantity: Mapped[int] = mapped_column(Integer, default=1)
+    amount_cents: Mapped[int] = mapped_column(Integer)
+    description: Mapped[str] = mapped_column(String(300), default="")
+    repo_id: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    ref: Mapped[str | None] = mapped_column(String(60), nullable=True)  # ticket / job id
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, index=True)
+
+
 # --------------------------------------------------------------------------- repositories (code support)
 
 
 class Repo(Base):
     __tablename__ = "repos"
     id: Mapped[str] = mapped_column(String(120), primary_key=True)  # "owner__name" (or "local__name")
+    account_id: Mapped[str | None] = mapped_column(
+        ForeignKey("accounts.id", ondelete="CASCADE"), nullable=True, index=True
+    )
     full_name: Mapped[str] = mapped_column(String(200))  # owner/name
     source: Mapped[str] = mapped_column(String(20), default="github")  # github | local
     local_path: Mapped[str | None] = mapped_column(Text, nullable=True)
@@ -376,9 +446,11 @@ class Ticket(Base):
     __tablename__ = "tickets"
     id: Mapped[str] = mapped_column(String(20), primary_key=True)  # T-xxxxxx
     repo_id: Mapped[str] = mapped_column(ForeignKey("repos.id", ondelete="CASCADE"), index=True)
-    customer: Mapped[dict[str, Any]] = mapped_column(
+    customer: Mapped[dict[str, Any]] = mapped_column(default=dict)  # name, email, ref (business system id)
+    channel: Mapped[str] = mapped_column(String(20), default="web")  # web | mcp | api
+    meta: Mapped[dict[str, Any]] = mapped_column(
         default=dict
-    )  # name, email, ref (id in the business system)
+    )  # handoff from the first-line agent, callback_url
     subject: Mapped[str] = mapped_column(String(200), default="")
     category: Mapped[str | None] = mapped_column(String(30), nullable=True)
     # bug | misunderstanding | assisted_action | feature_request | other

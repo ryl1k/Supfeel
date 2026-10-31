@@ -4,6 +4,7 @@ from decimal import Decimal
 
 from sqlalchemy import func, select
 
+from app.accounts.context import current_account
 from app.config import get_settings
 from app.db.models import LlmUsage
 from app.db.session import session_scope
@@ -37,6 +38,7 @@ async def record(
                 node=node,
                 mode=mode,
                 conversation_id=conversation_id,
+                account_id=current_account.get(),
                 input_tokens=input_tokens,
                 output_tokens=output_tokens,
                 cache_write_tokens=cache_write_tokens,
