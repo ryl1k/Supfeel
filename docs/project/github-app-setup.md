@@ -58,18 +58,27 @@ Local: add to the repo-root `.env` (never committed). Render: Environment tab.
 |---|---|
 | `GITHUB_APP_ID` | the App ID |
 | `GITHUB_APP_SLUG` | the slug (used for the "Install app" link in the UI) |
-| `GITHUB_APP_PRIVATE_KEY` | full PEM contents. On Render paste it as-is (multi-line is fine). In `.env` put it on one line with `\n` for newlines, or use `GITHUB_APP_PRIVATE_KEY_PATH` |
-| `GITHUB_APP_PRIVATE_KEY_PATH` | local alternative: path to the `.pem` (keep it outside the repo, e.g. `~/.secrets/supfeel.pem`) |
+| `GITHUB_APP_PRIVATE_KEY_PATH` | **local (recommended)**: path to the `.pem`, kept outside the repo: `~/.secrets/supfeel-github-app.pem` (`*.pem` is gitignored anyway) |
+| `GITHUB_APP_PRIVATE_KEY` | alternative: the full PEM contents. On Render either paste it as-is (multi-line is fine) or, better, add a **Secret File** named `github-app.pem` (Environment → Secret Files) and set `GITHUB_APP_PRIVATE_KEY_PATH=/etc/secrets/github-app.pem` |
 | `GITHUB_WEBHOOK_SECRET` | the webhook secret |
 | `GITHUB_TOKEN` | optional fallback: a fine-grained personal access token with the same repo permissions. Used only when no App is configured |
+| `TELEGRAM_BOT_TOKEN` / `TELEGRAM_CHAT_ID` | optional: business notifications to Telegram (recommended) |
 | `SLACK_WEBHOOK_URL` | optional: business notifications (bug found, PR opened, CI result) |
 | `DISCORD_WEBHOOK_URL` | optional: same, for Discord |
+
+Check the App credentials: the backend's `GET /api/github/status` shows `"auth": "app"`.
 
 Without any GitHub credentials, public repositories can still be imported and indexed (anonymous, read-only),
 but Supfeel cannot open PRs; bug tickets then end as reports in the dashboard.
 
 ## 5. Notifications (optional, free)
 
+- **Telegram** (recommended):
+  1. In Telegram open **@BotFather** → `/newbot` → pick a name and a username ending in `bot` → copy the token
+     into `TELEGRAM_BOT_TOKEN`.
+  2. Send any message to your bot. For a team channel, add the bot to a group and send a message there.
+  3. `cd backend && uv run python -m scripts.telegram_setup` prints `TELEGRAM_CHAT_ID=…` (group ids are negative).
+     Put it in `.env`, run the script again and it sends a test message.
 - **Slack**: api.slack.com/apps → Create app → *Incoming Webhooks* → On → *Add New Webhook to Workspace* → pick a
   channel → copy the URL into `SLACK_WEBHOOK_URL`.
 - **Discord**: channel settings → Integrations → Webhooks → New webhook → copy URL into `DISCORD_WEBHOOK_URL`.

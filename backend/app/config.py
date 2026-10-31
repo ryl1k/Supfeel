@@ -45,6 +45,8 @@ class Settings(BaseSettings):
     github_api_url: str = "https://api.github.com"
 
     # Business notifications (optional; always stored in the dashboard inbox too).
+    telegram_bot_token: str = ""
+    telegram_chat_id: str = ""
     slack_webhook_url: str = ""
     discord_webhook_url: str = ""
     public_app_url: str = "http://localhost:3000"

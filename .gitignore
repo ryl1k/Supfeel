@@ -43,3 +43,7 @@ logs/
 
 # Recorded LLM responses for replay mode (local only)
 .llm-cache/
+
+# keys and certificates
+*.pem
+*.key
