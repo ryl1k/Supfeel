@@ -10,11 +10,14 @@ _Last updated: 2026-10-31, end of Sprint 6 (MCP-first, workspaces, pay-as-you-go
   CI-verified PR, and returns a relay-ready result. Tracing, learning, notifications, push re-index.
 - **Billing**: pay as you go (mocked payments): credits, unit prices, monthly spend limit (resets on the 1st, UTC),
   auto-recharge, $5 welcome credit.
+- **UI (late Sprint 6)**: bold white card titles, Activity items with type chip + headline + one-line root cause
+  (details collapsed), tickets as a kanban board (`TicketBoard.tsx`) with search/category/channel filters.
 - **Frontend**: landing (animated escalation story, flow diagram, pricing), signup/login, onboarding wizard
   (`/app/welcome`, one-click Slice demo), Board (`/app`: checklist, KPIs, charts, activity), repo page with
   Connect (MCP) tab, tickets, inbox, billing, playground (`/support/[repoId]`).
 - Backend: 75 tests passing (mock mode), incl. MCP over streamable HTTP. Live Claude pipeline verified in Sprint 5.
-- Spend: $0.318 Claude, $0.0003 OpenAI (of $90 / $5).
+- **LLM_MODE=live** in `.env` (switched on by the user's request). Repos indexed in mock mode must be re-indexed to
+  get OpenAI embeddings (`ryl1k__supfeel` was re-indexed). Spend: $0.682 Claude, $0.0025 OpenAI (of $90 / $5).
 - GitHub App `supfeel` credentials verified; **no installations yet**. Telegram notifications configured.
 - `dev` is ahead of `main`; merge at sprint end.
 

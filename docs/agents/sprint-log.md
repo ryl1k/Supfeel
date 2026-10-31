@@ -119,6 +119,12 @@ duplicate `DATABASE_URL` in `.env` removed; Chrome's `scrollIntoView` returning 
 - Motion system: landing escalation story, animated flow diagram, scroll reveals, skeletons, count-ups, page transitions
 - 75 backend tests; browser walkthrough of signup → onboarding → playground ticket → board → billing
 
-**Spend**: $0 (all mock mode). Cumulative $0.318 / $90 Claude, $0.0003 / $5 OpenAI
+- Live mode on (user request): re-indexed `ryl1k/supfeel` with OpenAI embeddings + Claude summaries; live tickets
+  verified in the UI (fix agent found the address regex bug; reorder executed and verified)
+- UI pass (user feedback): bold white card titles, clearer Activity, kanban ticket board with filters
+- Review-pass fixes: wait=false errors keep their reason, `mcp>=2.3,<3`, callbacks signed with sha256(key),
+  refunds for failed index jobs and failed first ticket turns, `ix_repos_account_id`
+
+**Spend**: Claude $0.364, OpenAI $0.0022. Cumulative $0.682 / $90 Claude, $0.0025 / $5 OpenAI
 
 **Next**: deploy; publish Slice; live MCP → PR → CI → merge loop on the deploy.

@@ -78,4 +78,4 @@ Update after each sprint (from `GET /api/admin/usage`, which sums `llm_usage`).
 | 3 | 0.00 | 0.00 | UI built against LLM_MODE=mock |
 | 4 | 0.067 | 0.00 | Second live smoke run after the prompt change. **Cumulative: $0.135 Claude, $0.0001 OpenAI** |
 | 5 | 0.183 | 0.0002 | Pivot to code support. One live smoke of indexing + 3 ticket routes (`scripts/live_support_smoke.py`). **Cumulative: $0.318 Claude, $0.0003 OpenAI** |
-| 6 | 0.00 | 0.00 | MCP server, workspaces, pay-as-you-go billing, board, onboarding, animations: all built and tested in mock mode. **Cumulative: $0.318 Claude, $0.0003 OpenAI** |
+| 6 | 0.364 | 0.0022 | MCP server, workspaces, billing, board, onboarding built in mock mode; then live mode switched on: re-index of the user's `ryl1k/supfeel` repo ($0.26: 175 files, 17 module summaries) plus live UI checks. **Cumulative: $0.682 Claude, $0.0025 OpenAI** |
