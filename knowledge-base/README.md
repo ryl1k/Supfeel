@@ -15,4 +15,4 @@ Velora is the **fictional** online footwear and apparel store used in the Supfee
 - Each file starts with YAML frontmatter: `id`, `title`, `audience`, `tags`.
 - Use `##` sections. The ingester chunks on `##` headings, so keep each section self-contained (roughly 80–300 words) and repeat key nouns instead of saying "this policy".
 - Put concrete numbers in (days, amounts, thresholds). The agent must not guess them.
-- After editing, re-run ingestion so the embeddings (`.npz`) are refreshed. Only changed chunks are re-embedded.
+- After editing, re-run ingestion so the embeddings in `kb_chunks` are refreshed. Only changed chunks are re-embedded.

@@ -34,7 +34,7 @@ So $45 of operational spend covers more than 1,000 full conversations.
 ## Mandatory controls (implement in Sprint 1)
 
 1. **Central LLM client**. All Claude calls go through one module that:
-   - logs `usage` (input, output, cache read/write tokens) and the computed USD to `usage-ledger.jsonl`
+   - logs `usage` (input, output, cache read/write tokens) and the computed USD to the `llm_usage` table (persists across Railway redeploys)
    - enforces the global hard cap and a per-session cap (`LLM_SESSION_CAP_USD`)
    - sets a modest `max_tokens` per node (understand 512, plan 1024, respond 768)
    - uses `output_config.effort = "low"` by default; raise it only for `plan` if quality needs it
@@ -43,13 +43,13 @@ So $45 of operational spend covers more than 1,000 full conversations.
    - `mock`: canned responses, used for all UI and frontend work. **Default.**
    - `replay`: serve responses recorded in `.llm-cache/` keyed by request hash; fail on a miss. Used for tests and CI.
    - `live`: real calls, which are also recorded for later replay.
-4. **Embeddings**: embed `knowledge-base/` **once** offline and commit the `.npz` together with a content hash. Re-embed only changed chunks. Cache query embeddings on disk.
+4. **Embeddings**: embed `knowledge-base/` **once** into `kb_chunks` (pgvector), keyed by a content hash per chunk. Re-embed only changed chunks. Cache query embeddings (in memory, plus the `embedding_cache` table).
 5. **Agent loop limits**: at most 8 graph steps per turn and at most 2 verify→replan cycles.
 6. **Tests**: unit tests use `mock`/`replay`. Live evals run only when asked, on a small scenario set (≤ 10).
 
 ## Spend log
 
-Update after each sprint (from `usage-ledger.jsonl`).
+Update after each sprint (from `GET /api/admin/usage`, which sums `llm_usage`).
 
 | Sprint | Claude $ | OpenAI $ | Notes |
 |---|---|---|---|

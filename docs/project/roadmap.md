@@ -11,9 +11,9 @@ Each sprint ends with: docs updated (`docs/agents/`), spend logged (`budget.md`)
 ## Sprint 1: Backend core
 - FastAPI skeleton, config, health endpoint
 - Central LLM client with budget guard, ledger, `mock`/`replay`/`live` modes
-- Mock business systems: SQLite schema + seed fixtures (customers, orders, shipments, payments, products, subscriptions)
+- Mock business systems: Postgres (Neon) schema + seed fixtures (customers, orders, shipments, payments, products, subscriptions)
 - Tool layer (read + write) with unit tests
-- KB ingestion: chunk → embed → `.npz`; retrieval function
+- KB ingestion: chunk → embed → `kb_chunks` (pgvector); retrieval function
 
 ## Sprint 2: Agent
 - LangGraph graph: understand → investigate → retrieve_policy → plan → act → verify → respond
@@ -27,7 +27,7 @@ Each sprint ends with: docs updated (`docs/agents/`), spend logged (`budget.md`)
 - Wire to the backend SSE stream; demo customer picker
 
 ## Sprint 4: Polish and deploy
-- Deploy frontend (Vercel) and backend (Render / HF Spaces), all free
+- Deploy frontend (Vercel), backend (Railway), DB (Neon), all free
 - Demo reset endpoint, seeded demo accounts
 - Optional Qloo integration
 - Final pitch materials, README, demo script

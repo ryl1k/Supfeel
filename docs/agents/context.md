@@ -29,10 +29,10 @@ See `docs/project/roadmap.md`. Start with the central LLM client and budget guar
 
 - Demo store: Velora (footwear/apparel). Hero scenario: uncomfortable sneakers → comfort-guarantee exchange with a wide-fit suggestion.
 - Investigate and verify steps are deterministic (no LLM), so there are about 3 LLM calls per resolved issue.
-- Vector search runs in-process over a committed `.npz`. No vector DB.
+- Hosting: Vercel (frontend) + Railway (backend) + Neon Postgres with pgvector (data + vectors).
 - Qloo is optional, with a local fallback.
 
 ## Open questions
 
 - Hackathon name, rules and judging criteria are unknown. Ask the user before tailoring the pitch.
-- Backend host: Render vs HF Spaces. Decide in Sprint 4.
+- Railway trial credit ($5, 30 days) must last until the demo. Fallback is Render/HF Spaces.
