@@ -160,7 +160,7 @@ async def charge(
 async def refund(account_id: str | None, metric: str, ref: str, note: str) -> None:
     """Give a unit back (e.g. a fix run that never reached Claude)."""
     if account_id:
-        await _add(account_id, "refund", PRICES[metric].cents, note, metric=metric, ref=ref)
+        await _add(account_id, "refund", PRICES[metric].cents, note, metric=metric, quantity=-1, ref=ref)
 
 
 async def topup(account_id: str, cents: int, payment_method: dict) -> None:
