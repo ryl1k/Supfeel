@@ -17,12 +17,15 @@ log = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/github")
 
 
-async def _repo_for(full_name: str) -> Repo | None:
+async def _repos_for(full_name: str) -> list[Repo]:
+    """Every workspace's connection to this GitHub repository."""
     async with session_scope() as s:
-        r = await s.scalar(select(Repo).where(Repo.full_name.ilike(full_name), Repo.source == "github"))
-        if r:
+        rows = (
+            await s.scalars(select(Repo).where(Repo.full_name.ilike(full_name), Repo.source == "github"))
+        ).all()
+        for r in rows:
             s.expunge(r)
-        return r
+        return list(rows)
 
 
 @router.post("/webhook", status_code=202)
@@ -38,10 +41,13 @@ async def webhook(request: Request) -> dict:
         return {"ok": True, "event": "ping"}
 
     if event == "push":
-        repo = await _repo_for(full_name)
-        if repo and payload.get("ref") == f"refs/heads/{repo.default_branch}":
-            job_id = await start_job(repo.id, trigger="push")
-            return {"ok": True, "reindex": job_id}
+        jobs = [
+            await start_job(r.id, trigger="push")
+            for r in await _repos_for(full_name)
+            if payload.get("ref") == f"refs/heads/{r.default_branch}"
+        ]
+        if jobs:
+            return {"ok": True, "reindex": jobs}
         return {"ok": True, "ignored": "not the default branch of an imported repo"}
 
     if event in ("check_suite", "workflow_run", "check_run", "status"):

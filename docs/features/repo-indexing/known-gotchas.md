@@ -19,3 +19,6 @@
 - Import is charged before the repo row and job exist; a failed job (or re-importing an existing repo) is not refunded.
 - Repos created before Sprint 6 have `account_id` NULL: only the admin token sees them, and a workspace
   importing the same GitHub repo gets a 409.
+- Repository ids are namespaced per workspace (`acme__shop__ab12cd`); `full_name` is not unique. Anything keyed on
+  `full_name` (push webhooks, CI events, installation updates) must handle several rows. Rows created before this
+  change keep their old ids (`ryl1k__supfeel`).
