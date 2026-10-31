@@ -101,3 +101,23 @@ docker build -f backend/Dockerfile -t supfeel-api .
 docker run -p 8090:8000 -e DATABASE_URL=postgresql://postgres:postgres@host.docker.internal:5433/supfeel \
   -e LLM_MODE=mock supfeel-api
 ```
+
+## All environment variables (current)
+
+**Render (Supfeel API):** `DATABASE_URL`, `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `LLM_MODE=live`, `ADMIN_TOKEN`,
+`CORS_ORIGINS=https://<frontend>.vercel.app`, `PUBLIC_APP_URL=https://<frontend>.vercel.app`, `GITHUB_APP_ID`,
+`GITHUB_APP_SLUG=supfeel`, `GITHUB_WEBHOOK_SECRET`, `GITHUB_APP_PRIVATE_KEY_PATH=/etc/secrets/github-app.pem`
+(+ Secret File `github-app.pem`), `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`, `OPEN_IMPORT=false`,
+`ALLOW_LOCAL_REPOS=false`. Optional: `SLACK_WEBHOOK_URL`, `DISCORD_WEBHOOK_URL`, `DEMO_GITHUB_REPO`, caps
+(`LLM_BUDGET_HARD_CAP_USD`, `TICKET_CAP_USD`, `FIX_CAP_USD`, `INDEX_CAP_USD`). GitHub App webhook URL:
+`https://<api>.onrender.com/api/github/webhook`.
+
+**Vercel (Supfeel `frontend`, Root Directory `frontend`):** `NEXT_PUBLIC_API_URL=https://<api>.onrender.com`
+(build-time: redeploy after changing).
+
+**Vercel (Brewly demo, repo `ryl1k/Brewly`):** `SUPFEEL_MCP_URL=https://<api>.onrender.com/mcp`,
+`SUPFEEL_API_KEY` (created in the deployed dashboard: repository → Connect), `BREWLY_SERVICE_TOKEN=brewly-demo-token`.
+In the deployed Supfeel workspace set the Brewly repo's Business API base URL to the Brewly Vercel URL.
+
+**Vercel "Deployment was blocked"** on the Hobby plan: the commit author email must belong to the Vercel account
+owner's GitHub account. Both repos commit as `ruslan4ukshev4yk@gmail.com` (local git config).
