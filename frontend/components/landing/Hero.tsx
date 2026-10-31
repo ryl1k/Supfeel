@@ -20,9 +20,9 @@ export function Hero() {
           </span>
         </h1>
         <p className="anim-fade-up d-3 mt-7 max-w-[520px] text-[19px] leading-relaxed sm:text-[22px]">
-          Understand your problem, <span className="text-text-300">take action,</span>
-          <br className="hidden sm:block" /> and get real solutions{" "}
-          <span className="text-text-300">— not just answers.</span>
+          An MCP server for your AI support.
+          <br className="hidden sm:block" /> Keep your agent{" "}
+          <span className="text-text-300">— just add us as a tool.</span>
         </p>
         <div className="anim-fade-up d-4 mt-12 flex flex-wrap items-center gap-4">
           <Link
