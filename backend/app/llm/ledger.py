@@ -8,6 +8,7 @@ from app.config import get_settings
 from app.db.models import LlmUsage
 from app.db.session import session_scope
 from app.llm.pricing import cost_usd
+from app.obs import trace
 
 
 class BudgetExceeded(RuntimeError):
@@ -25,6 +26,7 @@ async def record(
     output_tokens: int = 0,
     cache_write_tokens: int = 0,
     cache_read_tokens: int = 0,
+    annotate: bool = True,
 ) -> float:
     cost = cost_usd(model, input_tokens, output_tokens, cache_write_tokens, cache_read_tokens)
     async with session_scope() as s:
@@ -42,6 +44,14 @@ async def record(
                 cost_usd=Decimal(str(round(cost, 6))),
             )
         )
+    if annotate:
+        trace.annotate_usage(
+            cost,
+            input_tokens=input_tokens,
+            output_tokens=output_tokens,
+            cache_read_tokens=cache_read_tokens,
+            cache_write_tokens=cache_write_tokens,
+        )
     return cost
 
 
@@ -55,7 +65,9 @@ async def total_spend(provider: str, conversation_id: str | None = None) -> floa
         return float(await s.scalar(stmt))
 
 
-async def check_caps(provider: str, estimate_usd: float, conversation_id: str | None = None) -> None:
+async def check_caps(
+    provider: str, estimate_usd: float, conversation_id: str | None = None, session_cap: float | None = None
+) -> None:
     settings = get_settings()
     if provider == "anthropic":
         total = await total_spend("anthropic")
@@ -65,10 +77,9 @@ async def check_caps(provider: str, estimate_usd: float, conversation_id: str | 
             )
         if conversation_id:
             session_total = await total_spend("anthropic", conversation_id)
-            if session_total + estimate_usd > settings.llm_session_cap_usd:
-                raise BudgetExceeded(
-                    f"Session cap ${settings.llm_session_cap_usd:.2f} reached for this conversation"
-                )
+            cap = settings.llm_session_cap_usd if session_cap is None else session_cap
+            if session_total + estimate_usd > cap:
+                raise BudgetExceeded(f"Session cap ${cap:.2f} reached for {conversation_id}")
     elif provider == "openai":
         total = await total_spend("openai")
         if total + estimate_usd > settings.embedding_budget_hard_cap_usd:
