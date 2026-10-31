@@ -1,47 +1,73 @@
 # Supfeel
 
-**More than answers — real solutions.**
+**AI support that truly helps. More than answers: real solutions.**
 
-Supfeel is an AI customer-support agent that doesn't stop at answering questions. It understands the customer's problem, investigates their account, plans a fix, executes it through business tools (orders, refunds, exchanges, subscriptions) and verifies that the problem is actually resolved.
-
-Hackathon project, built around a customer-support challenge.
-
-## How it works
+Supfeel is an AI customer-support agent that takes responsibility for the outcome. It **understands** the
+customer's real problem, **investigates** their account, **plans** within written company policy, **acts**
+through business tools (exchanges, refunds, reships, cancellations, address changes…) and **verifies** the
+fix by re-reading system state, all visible to the customer as it happens.
 
 ```
-understand → investigate → plan → act → verify → respond
+understand → investigate → policy (RAG) → plan → [customer approval] → act → verify → respond
 ```
 
-1. **Understand** — classify the request and extract the underlying problem.
-2. **Investigate** — pull customer, order and shipment data from connected systems.
-3. **Plan** — reason against company policy (retrieved from the knowledge base) and pick a resolution.
-4. **Act** — execute the resolution via tools (refund, exchange, reship, cancel, update address…).
-5. **Verify** — re-read system state to confirm the action took effect.
-6. **Respond** — tell the customer what was done, with a visible action trail.
+The demo runs against **Velora**, a fictional footwear store with mock orders, shipments, payments and memberships.
 
-Personalized recommendations (e.g. replacement products) can optionally use Qloo taste intelligence. It is never a hard dependency.
+## Highlights
 
-## Repository layout
+- **Agentic, not chatty**: tool calls change real (mock) state in Postgres.
+- **Verification loop**: every write is checked by reading the database again. Failures go to a human automatically.
+- **Policy-grounded**: decisions cite the knowledge base (`knowledge-base/`, pgvector RAG).
+- **Safe by design**: confirmation and escalation rules (sensitive actions, refunds > $200) are enforced in code, not in the prompt.
+- **Resilient and cheap**: Claude Sonnet with prompt caching (≈ $0.02 per resolved issue). Investigation and verification are deterministic. A rule-based brain takes over automatically in mock mode, on API errors, or when the budget cap is hit.
+- **Transparent UI**: live step trail with policy citations, approval cards, and verified action receipts.
+
+## Stack
+
+| Layer | Tech |
+|---|---|
+| Agent | LangGraph, Claude `claude-sonnet-5-5` (structured outputs, prompt caching) |
+| Embeddings | OpenAI `text-embedding-3-small` → pgvector (HNSW) |
+| Backend | Python 3.11, FastAPI, SQLAlchemy (async), SSE |
+| Frontend | Next.js 16, React 19, Tailwind v4 |
+| Hosting (free) | Vercel (web), Railway (API, Docker), Neon (Postgres + pgvector) |
+
+## Run locally
+
+```bash
+cp .env.example .env               # add ANTHROPIC_API_KEY / OPENAI_API_KEY (optional in mock mode)
+docker compose up -d               # Postgres + pgvector on :5433
+
+cd backend
+uv sync
+uv run python -m app.boot          # tables + demo data + knowledge base
+uv run uvicorn app.main:app --reload   # http://localhost:8000/api/health
+
+cd ../frontend
+npm install
+npm run dev                        # http://localhost:3000
+```
+
+`LLM_MODE=mock` (the default) costs nothing: the agent runs on its deterministic rule brain.
+Set `LLM_MODE=live` to use Claude. Spend is capped (`LLM_BUDGET_HARD_CAP_USD`) and tracked at `/api/admin/usage`.
+
+Tests: `cd backend && uv run pytest` (51 tests, mock mode, uses DB `supfeel_test`).
+Live end-to-end check: `LLM_MODE=live uv run python -m scripts.live_smoke` (≈ $0.07 on a cold cache).
+
+## Repository
 
 | Path | Purpose |
 |---|---|
-| `docs/project/` | Product brief, architecture, design system, budget, roadmap, conventions |
-| `docs/agents/` | Living context for coding agents: current state, sprint log, handoff notes |
-| `docs/design/` | Visual references (landing page mock) |
-| `knowledge-base/` | Support policies and FAQ for the demo store. The agent retrieves from these (RAG) |
-| `CLAUDE.md` | Entry point for AI coding agents working in this repo |
-
-Application code (`backend/`, `frontend/`) lands in Sprint 1. See `docs/project/roadmap.md`.
-
-## Getting started
-
-```bash
-cp .env.example .env   # add ANTHROPIC_API_KEY and OPENAI_API_KEY
-```
-
-Run instructions are added once the app code exists.
+| `backend/app/agent/` | LangGraph graph, brains (Claude + rules), authority rules, conversation service |
+| `backend/app/tools/` | Mock Velora business systems: read/write tools + verifiers |
+| `backend/app/rag/` | Knowledge-base ingestion and retrieval |
+| `backend/app/llm/` | Budget-guarded Claude client, pricing, usage ledger |
+| `frontend/` | Landing page (`/`) and chat (`/chat`) |
+| `knowledge-base/` | Velora policies + FAQ (RAG source) |
+| `docs/project/` | Brief, architecture, design system, budget, roadmap, [deployment](docs/project/deployment.md), [demo script](docs/project/demo-script.md) |
+| `docs/features/` | Per-feature context (10 files each) for humans and coding agents |
+| `docs/agents/` | Current state + sprint log for coding agents |
 
 ## Branches
 
-- `main`: stable, demo-ready
-- `dev`: active development; merged into `main` at the end of each sprint
+`main` is stable and demo-ready. `dev` is for active work and is merged into `main` at the end of each sprint.
