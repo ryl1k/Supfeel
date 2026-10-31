@@ -1,0 +1,46 @@
+{
+  "feature": "business-tools",
+  "status": "done",
+  "http": [
+    {
+      "method": "GET",
+      "path": "/api/customers/demo",
+      "handler": "backend/app/api/admin.py:list_demo_customers",
+      "notes": "demo persona picker"
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/reset",
+      "handler": "backend/app/api/admin.py:reset",
+      "notes": "x-admin-token header"
+    },
+    {
+      "method": "POST",
+      "path": "/api/demo/reset",
+      "handler": "backend/app/api/admin.py:public_reset",
+      "notes": "unauthenticated demo reset (mock data only)"
+    }
+  ],
+  "code": [
+    "backend/app/tools/base.py",
+    "backend/app/tools/read.py",
+    "backend/app/tools/write.py",
+    "backend/app/tools/verify.py",
+    "backend/app/tools/registry.py",
+    "backend/app/tools/recommendations.py",
+    "backend/app/db/models.py",
+    "backend/app/db/seed.py",
+    "backend/app/db/fixtures/catalog.json",
+    "backend/app/db/fixtures/demo.json"
+  ],
+  "tests": [
+    "backend/tests/tools/test_tools.py",
+    "backend/tests/test_seed.py"
+  ],
+  "cli": [
+    {
+      "command": "uv run python -m app.db.seed",
+      "notes": "create tables + reset demo data"
+    }
+  ]
+}

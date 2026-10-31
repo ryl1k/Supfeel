@@ -6,18 +6,20 @@ Status: **proposed** (Sprint 0). Update this file when decisions change.
 
 ```
 ┌──────────────┐   SSE/HTTP   ┌──────────────────────────────────────────────┐
-│  Frontend    │ ───────────▶ │  Backend (FastAPI)                           │
+│  Frontend    │ ───────────▶ │  Backend (FastAPI) on Railway                │
 │  Next.js     │ ◀─────────── │                                              │
 │  (Vercel)    │  stream:     │  LangGraph agent                             │
 └──────────────┘  text +      │   understand → investigate → plan → act      │
                   action      │        ▲                          │          │
                   events      │        └──── verify ◀─────────────┘          │
                               │                                              │
-                              │  Tools ──▶ Mock business systems (SQLite)    │
-                              │  RAG   ──▶ knowledge-base/ embeddings (npz)  │
+                              │  Tools ──▶ Mock business systems (Postgres)  │
+                              │  RAG   ──▶ kb_chunks (pgvector)              │
                               │  LLM   ──▶ Claude Sonnet (budget guard)      │
                               │  Emb   ──▶ OpenAI text-embedding-3-small     │
-                              └──────────────────────────────────────────────┘
+                              └──────────────────────┬───────────────────────┘
+                                                     ▼
+                                       Neon Postgres + pgvector
 ```
 
 ## Stack
@@ -29,8 +31,10 @@ Status: **proposed** (Sprint 0). Update this file when decisions change.
 | Agent orchestration | LangGraph | Explicit state machine, so the steps are visible in the UI |
 | LLM | Claude `claude-sonnet-5-5` via the official `anthropic` SDK | Required by the project |
 | Embeddings | OpenAI `text-embedding-3-small` (1536-d) | Required by the project |
-| Vector search | In-process cosine over a precomputed `.npz` file | Zero infra, zero cost, fine for under 1k chunks |
-| Business data | SQLite seeded from JSON fixtures | Deterministic demo state, easy reset |
+| Database | Neon Postgres (free plan) via SQLAlchemy 2 + asyncpg | Persistent across backend redeploys, free, scales to zero |
+| Vector search | `pgvector` on the same Neon DB (`kb_chunks.embedding vector(1536)`) | One store, no extra infra; HNSW supports 1536-d |
+| Business data | Postgres tables seeded from JSON fixtures (`/api/admin/reset`) | Deterministic demo state, one-call reset |
+| Local dev DB | Docker `pgvector/pgvector:pg16`, or a Neon dev branch | Same engine as prod |
 | Streaming | Server-Sent Events | Simple, works on free hosts |
 
 ## Agent graph (LangGraph)
@@ -55,12 +59,16 @@ Write: `create_refund`, `create_exchange`, `create_return_label`, `reship_order`
 
 Optional: `get_recommendations` (Qloo when a key is available, otherwise a local tag-similarity fallback).
 
-## Free deployment
+## Deployment (decided 2026-10-31)
 
-| Part | Host |
-|---|---|
-| Frontend | Vercel Hobby |
-| Backend | Render free web service (Docker), or Hugging Face Spaces (Docker) as fallback |
-| Data | SQLite + npz shipped in the image; resets on restart (fine for the demo) |
+| Part | Host | Plan / limits that matter |
+|---|---|---|
+| Frontend | **Vercel** Hobby | Free. Static/edge only; no long-running backend work here |
+| Backend | **Railway** (Docker) | Trial: one-time $5 credit for 30 days, then the Free plan at $1/month credit. Enable app sleeping (serverless). Keep the image slim |
+| Database | **Neon** Free | 0.5 GB storage, 100 CU-hours/month per project, scales to zero after 5 min idle (cold start ~1 s) |
 
-No paid services anywhere. See `budget.md` for API spend.
+- Railway's credit is the only thing that can run out. Watch usage in the dashboard. If the trial ends before the hackathon, use Render free or HF Spaces (same Dockerfile).
+- Frontend → backend over HTTPS + SSE; CORS allows the Vercel domain only.
+- Secrets live in Railway/Vercel env vars, never in the repo.
+
+See `budget.md` for API spend.

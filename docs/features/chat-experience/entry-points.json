@@ -1,0 +1,20 @@
+{
+  "feature": "chat-experience",
+  "status": "planned",
+  "routes": [
+    {
+      "path": "/chat",
+      "file": "frontend/app/chat/page.tsx"
+    }
+  ],
+  "code": [
+    "frontend/components/chat/",
+    "frontend/lib/sse.ts",
+    "frontend/lib/api.ts",
+    "frontend/lib/types.ts"
+  ],
+  "backend_contract": "backend/app/agent/events.py",
+  "tests": [
+    "frontend/tests/chat/"
+  ]
+}

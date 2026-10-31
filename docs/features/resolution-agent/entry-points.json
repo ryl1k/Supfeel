@@ -1,0 +1,27 @@
+{
+  "feature": "resolution-agent",
+  "status": "planned",
+  "http": [
+    {
+      "method": "POST",
+      "path": "/api/chat",
+      "handler": "backend/app/api/chat.py:chat_stream",
+      "notes": "SSE; body {conversation_id, customer_id, message}"
+    },
+    {
+      "method": "POST",
+      "path": "/api/chat/confirm",
+      "handler": "backend/app/api/chat.py:confirm_action",
+      "notes": "resume interrupted graph with {conversation_id, action_id, approved}"
+    }
+  ],
+  "code": [
+    "backend/app/agent/graph.py:build_graph",
+    "backend/app/agent/state.py:AgentState",
+    "backend/app/agent/nodes/",
+    "backend/app/agent/prompts/"
+  ],
+  "tests": [
+    "backend/tests/agent/test_scenarios.py"
+  ]
+}

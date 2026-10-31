@@ -41,6 +41,5 @@ pnpm-debug.log*
 logs/
 *.log
 
-# LLM cost ledger and response cache (local only)
+# Recorded LLM responses for replay mode (local only)
 .llm-cache/
-usage-ledger.jsonl

@@ -1,0 +1,115 @@
+{
+  "_comment": "Demo state. All *_days_ago fields are resolved relative to seed time so the demo never rots. Amounts in cents.",
+  "customers": [
+    {
+      "id": "cus_maya", "name": "Maya Chen", "email": "maya.chen@example.com", "tier": "member",
+      "persona": "Bought Cloud Runners 9 days ago - they feel too narrow.",
+      "preferences": {"style_tags": ["minimal", "neutral", "running"], "shoe_size": 10, "favorite_colors": ["Slate", "Sand"]}
+    },
+    {
+      "id": "cus_jordan", "name": "Jordan Patel", "email": "jordan.patel@example.com", "tier": "guest",
+      "persona": "Package has been stuck in transit for almost two weeks.",
+      "preferences": {"style_tags": ["outdoor"], "shoe_size": 11}
+    },
+    {
+      "id": "cus_alex", "name": "Alex Rivera", "email": "alex.rivera@example.com", "tier": "member",
+      "persona": "Sees two charges for the same order on their card.",
+      "preferences": {"style_tags": ["classic"], "shoe_size": 9.5}
+    },
+    {
+      "id": "cus_sam", "name": "Sam Okafor", "email": "sam.okafor@example.com", "tier": "member",
+      "persona": "Membership renewed 3 days ago - wants to cancel.",
+      "preferences": {"style_tags": ["casual"], "shoe_size": 10.5}
+    },
+    {
+      "id": "cus_lee", "name": "Lee Novak", "email": "lee.novak@example.com", "tier": "guest",
+      "persona": "Wants to return shoes bought 45 days ago; has another order still processing.",
+      "preferences": {"style_tags": ["casual", "minimal"], "shoe_size": 8.5}
+    },
+    {
+      "id": "cus_priya", "name": "Priya Shah", "email": "priya.shah@example.com", "tier": "member",
+      "persona": "Court sneakers' sole is separating after 10 weeks.",
+      "preferences": {"style_tags": ["classic", "leather"], "shoe_size": 8}
+    }
+  ],
+  "orders": [
+    {
+      "id": "V1042", "customer_id": "cus_maya", "status": "delivered", "placed_days_ago": 13, "shipped_days_ago": 12, "delivered_days_ago": 9,
+      "shipping_method": "standard", "shipping_cents": 0,
+      "address": {"name": "Maya Chen", "line1": "214 Larkin St", "city": "San Francisco", "state": "CA", "zip": "94102", "country": "US"},
+      "items": [{"sku": "cloud-runner-slate-10-D", "price_cents": 12800}],
+      "shipment": {"id": "SH-5001", "carrier": "UPS", "tracking_no": "1Z999AA10123456784", "status": "delivered", "last_scan_days_ago": 9},
+      "payments": [{"id": "PAY-7001", "amount_cents": 12800, "method": "card", "last4": "4242", "status": "captured", "days_ago": 13}]
+    },
+    {
+      "id": "V0987", "customer_id": "cus_maya", "status": "delivered", "placed_days_ago": 120, "shipped_days_ago": 119, "delivered_days_ago": 115,
+      "shipping_method": "standard", "shipping_cents": 0,
+      "address": {"name": "Maya Chen", "line1": "214 Larkin St", "city": "San Francisco", "state": "CA", "zip": "94102", "country": "US"},
+      "items": [{"sku": "everyday-knit-charcoal-10-D", "price_cents": 9800}],
+      "shipment": {"id": "SH-4870", "carrier": "UPS", "tracking_no": "1Z999AA10123450001", "status": "delivered", "last_scan_days_ago": 115},
+      "payments": [{"id": "PAY-6810", "amount_cents": 9800, "method": "card", "last4": "4242", "status": "captured", "days_ago": 120}]
+    },
+    {
+      "id": "V1077", "customer_id": "cus_jordan", "status": "shipped", "placed_days_ago": 15, "shipped_days_ago": 14,
+      "shipping_method": "standard", "shipping_cents": 595,
+      "address": {"name": "Jordan Patel", "line1": "88 Elm Ave Apt 3", "city": "Austin", "state": "TX", "zip": "78701", "country": "US"},
+      "items": [{"sku": "trail-moss-11-D", "price_cents": 14200}],
+      "shipment": {"id": "SH-5040", "carrier": "FedEx", "tracking_no": "7712 3456 9012", "status": "in_transit", "last_scan_days_ago": 12,
+                   "estimated_delivery_days_ago": 8,
+                   "events": [{"days_ago": 14, "desc": "Label created"}, {"days_ago": 13, "desc": "Picked up - Reno, NV"},
+                              {"days_ago": 12, "desc": "In transit - Salt Lake City, UT"}]},
+      "payments": [{"id": "PAY-7040", "amount_cents": 14795, "method": "paypal", "last4": null, "status": "captured", "days_ago": 15}]
+    },
+    {
+      "id": "V1090", "customer_id": "cus_alex", "status": "delivered", "placed_days_ago": 8, "shipped_days_ago": 7, "delivered_days_ago": 4,
+      "shipping_method": "standard", "shipping_cents": 0,
+      "address": {"name": "Alex Rivera", "line1": "1500 N Clark St", "city": "Chicago", "state": "IL", "zip": "60610", "country": "US"},
+      "items": [{"sku": "court-leather-white-9.5-D", "price_cents": 11800}, {"sku": "support-insole-OS", "price_cents": 2495}],
+      "shipment": {"id": "SH-5060", "carrier": "USPS", "tracking_no": "9400 1000 0000 0000 0000 00", "status": "delivered", "last_scan_days_ago": 4},
+      "payments": [
+        {"id": "PAY-7060", "amount_cents": 14295, "method": "card", "last4": "1881", "status": "captured", "days_ago": 8},
+        {"id": "PAY-7061", "amount_cents": 14295, "method": "card", "last4": "1881", "status": "captured", "days_ago": 8}
+      ]
+    },
+    {
+      "id": "V1095", "customer_id": "cus_alex", "status": "processing", "placed_days_ago": 0,
+      "shipping_method": "standard", "shipping_cents": 0,
+      "address": {"name": "Alex Rivera", "line1": "1500 N Clark St", "city": "Chicago", "state": "IL", "zip": "60610", "country": "US"},
+      "items": [{"sku": "crew-socks-3pk-OS", "price_cents": 1800}],
+      "payments": [
+        {"id": "PAY-7090", "amount_cents": 1800, "method": "card", "last4": "1881", "status": "authorized", "days_ago": 0},
+        {"id": "PAY-7091", "amount_cents": 1800, "method": "card", "last4": "1881", "status": "authorized", "days_ago": 0}
+      ]
+    },
+    {
+      "id": "V1012", "customer_id": "cus_lee", "status": "delivered", "placed_days_ago": 50, "shipped_days_ago": 49, "delivered_days_ago": 45,
+      "shipping_method": "standard", "shipping_cents": 595,
+      "address": {"name": "Lee Novak", "line1": "9 Harbor Rd", "city": "Portland", "state": "ME", "zip": "04101", "country": "US"},
+      "items": [{"sku": "everyday-knit-cloud-8.5-D", "price_cents": 9800}],
+      "shipment": {"id": "SH-4990", "carrier": "USPS", "tracking_no": "9400 1000 0000 0000 0000 11", "status": "delivered", "last_scan_days_ago": 45},
+      "payments": [{"id": "PAY-6990", "amount_cents": 10395, "method": "apple_pay", "last4": "3005", "status": "captured", "days_ago": 50}]
+    },
+    {
+      "id": "V1101", "customer_id": "cus_lee", "status": "processing", "placed_days_ago": 0,
+      "shipping_method": "standard", "shipping_cents": 0,
+      "address": {"name": "Lee Novak", "line1": "9 Harbor Rd", "city": "Portland", "state": "ME", "zip": "04101", "country": "US"},
+      "items": [{"sku": "slip-on-black-8.5-D", "price_cents": 7800}],
+      "payments": [{"id": "PAY-7101", "amount_cents": 7800, "method": "apple_pay", "last4": "3005", "status": "authorized", "days_ago": 0}]
+    },
+    {
+      "id": "V1003", "customer_id": "cus_priya", "status": "delivered", "placed_days_ago": 76, "shipped_days_ago": 75, "delivered_days_ago": 70,
+      "shipping_method": "standard", "shipping_cents": 0,
+      "address": {"name": "Priya Shah", "line1": "400 Market St", "city": "Philadelphia", "state": "PA", "zip": "19106", "country": "US"},
+      "items": [{"sku": "court-leather-white-8-D", "price_cents": 11800}],
+      "shipment": {"id": "SH-4900", "carrier": "UPS", "tracking_no": "1Z999AA10123450333", "status": "delivered", "last_scan_days_ago": 70},
+      "payments": [{"id": "PAY-6900", "amount_cents": 11800, "method": "card", "last4": "5100", "status": "captured", "days_ago": 76}]
+    }
+  ],
+  "subscriptions": [
+    {"id": "SUB-301", "customer_id": "cus_maya", "plan": "monthly", "price_cents": 999, "status": "active", "renewed_days_ago": 20, "benefits_used_since_renewal": true},
+    {"id": "SUB-302", "customer_id": "cus_alex", "plan": "annual", "price_cents": 8900, "status": "active", "renewed_days_ago": 140, "benefits_used_since_renewal": true},
+    {"id": "SUB-303", "customer_id": "cus_sam", "plan": "monthly", "price_cents": 999, "status": "active", "renewed_days_ago": 3, "benefits_used_since_renewal": false,
+     "renewal_payment": {"id": "PAY-7200", "method": "card", "last4": "7777"}},
+    {"id": "SUB-304", "customer_id": "cus_priya", "plan": "annual", "price_cents": 8900, "status": "active", "renewed_days_ago": 60, "benefits_used_since_renewal": true}
+  ]
+}
