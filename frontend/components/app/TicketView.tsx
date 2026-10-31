@@ -8,7 +8,7 @@ import { usePoll } from "@/lib/usePoll";
 import { api, type Fix, type Notification, type TicketAction, type TicketDetail } from "@/lib/workspace";
 
 import { TraceView } from "./TraceView";
-import { Badge, Card, CategoryBadge, cx, Empty, ErrorNote, Markdown, Spinner, StatusBadge, timeAgo } from "./ui";
+import { Badge, Card, CategoryBadge, cx, Empty, ErrorNote, Markdown, StatusBadge, timeAgo } from "./ui";
 
 const LIVE = new Set(["fix_in_review", "fix_verified", "awaiting_confirmation", "open"]);
 
@@ -205,7 +205,16 @@ export function TicketView() {
   const ticket = usePoll(() => api.ticket(id), id, 4000, (d) => !d || LIVE.has(d.status));
   const trace = usePoll(() => api.ticketTrace(id), id, 6000, () => !ticket.data || LIVE.has(ticket.data.status));
   if (ticket.error && !ticket.data) return <ErrorNote>{ticket.error}</ErrorNote>;
-  if (!ticket.data) return <Spinner className="h-6 w-6" />;
+  if (!ticket.data)
+    return (
+      <div className="space-y-4">
+        <div className="skeleton h-12 w-2/3" />
+        <div className="grid gap-5 lg:grid-cols-2">
+          <div className="skeleton h-72" />
+          <div className="skeleton h-72" />
+        </div>
+      </div>
+    );
   const t = ticket.data;
   const brain = t.triage?.brain ?? {};
 
@@ -236,7 +245,7 @@ export function TicketView() {
       </div>
 
       <div className="grid gap-5 lg:grid-cols-2">
-        <div className="space-y-5">
+        <div className="stagger space-y-5">
           <Conversation t={t} />
           {t.resolution?.summary ? (
             <Card title="Resolution">
@@ -245,7 +254,7 @@ export function TicketView() {
             </Card>
           ) : null}
         </div>
-        <div className="space-y-5">
+        <div className="stagger space-y-5">
           <FixCard fix={t.fix} />
           <ActionsCard actions={t.actions} />
           <Card title="Business notifications">

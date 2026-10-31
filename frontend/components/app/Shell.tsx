@@ -9,7 +9,7 @@ import { usePoll } from "@/lib/usePoll";
 import { setSessionToken, useSessionToken } from "@/lib/session";
 import { api } from "@/lib/workspace";
 
-import { cx, Spinner } from "./ui";
+import { cx } from "./ui";
 
 const NAV = [
   { href: "/app", label: "Workspace" },
@@ -92,7 +92,9 @@ export function Shell({ children }: { children: ReactNode }) {
           {token ? <Account /> : null}
         </div>
       </header>
-      <main className="mx-auto max-w-[1320px] px-4 py-6 sm:px-8 sm:py-8">{token ? children : <Spinner className="h-6 w-6" />}</main>
+      <main key={path} className="page-enter mx-auto max-w-[1320px] px-4 py-6 sm:px-8 sm:py-8">
+        {token ? children : <div className="skeleton h-40" />}
+      </main>
     </div>
   );
 }

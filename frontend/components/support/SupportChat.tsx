@@ -55,7 +55,7 @@ function StepTrail({ turn, ticketId }: { turn: AgentTurn; ticketId: string | nul
       <button onClick={() => setOpen(!open)} className="flex w-full flex-wrap items-center gap-x-3 gap-y-2 text-left">
         {steps.map((s) => (
           <span key={s.step} className="flex items-center gap-1.5 text-[13px]">
-            <span className={cx("flex h-5 w-5 items-center justify-center rounded-full", s.status === "done" ? "bg-success/15 text-success" : "bg-indigo-400/20 text-lavender-200")}>
+            <span className={cx("flex h-5 w-5 items-center justify-center rounded-full", s.status === "done" ? "anim-pop bg-success/15 text-success" : "bg-indigo-400/20 text-lavender-200")}>
               {s.status === "done" ? <Check className="h-3 w-3" /> : <Spinner className="h-3 w-3" />}
             </span>
             <span className={s.status === "done" ? "text-text-300" : "text-text-100"}>{STEP_LABEL[s.step] ?? s.step}</span>
@@ -99,7 +99,7 @@ function ProposalCard({ turn, onDecide, disabled }: { turn: AgentTurn; onDecide:
   const a = turn.proposed[0];
   const body = (a.args?.body ?? {}) as Record<string, unknown>;
   return (
-    <div className="rounded-[18px] border border-warning/40 bg-warning/5 px-5 py-4">
+    <div className="anim-scale-in rounded-[18px] border border-warning/40 bg-warning/5 px-5 py-4">
       <div className="text-[12px] uppercase tracking-wider text-warning">Needs your OK</div>
       <div className="mt-1 text-[15px] font-medium text-text-100">{a.title}</div>
       {a.why ? <p className="mt-1 text-[13px] text-text-300">{a.why}</p> : null}
@@ -124,7 +124,7 @@ function ProposalCard({ turn, onDecide, disabled }: { turn: AgentTurn; onDecide:
 
 function VerifiedCard({ v }: { v: AgentTurn["verified"][number] }) {
   return (
-    <div className={cx("rounded-[18px] border px-5 py-4", v.ok ? "border-success/40 bg-success/5" : "border-danger/40 bg-danger/5")}>
+    <div className={cx("anim-scale-in rounded-[18px] border px-5 py-4", v.ok ? "border-success/40 bg-success/5" : "border-danger/40 bg-danger/5")}>
       <div className={cx("flex items-center gap-2 text-[12px] uppercase tracking-wider", v.ok ? "text-success" : "text-danger")}>
         <Shield className="h-4 w-4" /> {v.ok ? "Verified" : "Verification failed"}
       </div>
@@ -140,7 +140,7 @@ function FixCard({ turn }: { turn: AgentTurn }) {
   const fix = turn.fix;
   if (!fix) return null;
   return (
-    <div className="rounded-[18px] border border-indigo-400/40 bg-sapphire-600/10 px-5 py-4">
+    <div className="anim-scale-in rounded-[18px] border border-indigo-400/40 bg-sapphire-600/10 px-5 py-4">
       <div className="flex items-center gap-2 text-[12px] uppercase tracking-wider text-lavender-200">
         <Bolt className="h-4 w-4" /> {fix.pr_url ? "Fix in review" : "Fix prepared"}
       </div>
@@ -239,10 +239,12 @@ export function SupportChat() {
           <div className="scrollbar-thin flex-1 space-y-5 overflow-y-auto p-4 sm:p-6">
             {!chat.turns.length ? (
               <div className="flex flex-col items-center gap-4 py-10 text-center">
-                <Gem size={64} />
+                <span className="anim-float">
+                  <Gem size={64} />
+                </span>
                 <h1 className="text-[24px] font-semibold">How can we help?</h1>
                 <p className="max-w-md text-[14px] text-text-300">Describe what happened. Supfeel investigates, then explains, does it for you, or gets it fixed, and shows every step.</p>
-                <div className="mt-2 grid w-full max-w-xl gap-2">
+                <div className="stagger mt-2 grid w-full max-w-xl gap-2">
                   {(isSlice ? SLICE_PROMPTS : GENERIC_PROMPTS).map((p) => (
                     <button key={p} onClick={() => (isSlice ? chat.send(p) : setText(p))} className="rounded-2xl border border-line bg-panel-strong px-4 py-3 text-left text-[14px] text-lavender-200 hover:border-lavender-300/50">
                       {p}
@@ -253,9 +255,12 @@ export function SupportChat() {
             ) : null}
             {chat.turns.map((t) =>
               t.kind === "customer" ? (
-                <UserBubble key={t.id}>{t.text}</UserBubble>
+                <div key={t.id} className="anim-fade-up">
+                  <UserBubble>{t.text}</UserBubble>
+                </div>
               ) : (
-                <AssistantRow key={t.id}>
+                <div key={t.id} className="anim-fade-up">
+                <AssistantRow>
                   <StepTrail turn={t} ticketId={chat.ticketId} />
                   <ProposalCard turn={t} disabled={chat.busy} onDecide={(ok) => chat.confirm(t.id, ok)} />
                   {t.verified.map((v, i) => (
@@ -275,6 +280,7 @@ export function SupportChat() {
                   ) : null}
                   {t.error ? <p className="text-[13px] text-danger">{t.error}</p> : null}
                 </AssistantRow>
+                </div>
               ),
             )}
             <div ref={bottom} />

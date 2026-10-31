@@ -8,7 +8,7 @@ export function cx(...parts: (string | false | null | undefined)[]) {
 
 export function Card({ children, className, title, action }: { children: ReactNode; className?: string; title?: ReactNode; action?: ReactNode }) {
   return (
-    <section className={cx("rounded-[20px] border border-line bg-panel p-5 backdrop-blur-md sm:p-6", className)}>
+    <section className={cx("rounded-[20px] border border-line bg-panel p-5 backdrop-blur-md transition-colors sm:p-6", className)}>
       {title || action ? (
         <header className="mb-4 flex items-center justify-between gap-3">
           {title ? <h2 className="text-[15px] font-semibold tracking-wide text-lavender-200">{title}</h2> : <span />}
@@ -139,7 +139,7 @@ export function Tabs<T extends string>({ tabs, value, onChange }: { tabs: { id: 
           onClick={() => onChange(t.id)}
           className={cx(
             "whitespace-nowrap rounded-full px-4 py-1.5 text-[14px] transition-colors",
-            value === t.id ? "bg-sapphire-600 text-white" : "text-text-300 hover:text-text-100",
+            value === t.id ? "bg-sapphire-600 text-white shadow-[0_6px_20px_-8px_rgba(47,63,224,0.9)]" : "text-text-300 hover:bg-panel hover:text-text-100",
           )}
         >
           {t.label}

@@ -92,14 +92,16 @@ function FlowGraph({ roots, onSelect, selected }: { roots: Node[]; onSelect: (id
                     {i > 0 ? (
                       <div className="flex shrink-0 items-center px-1" aria-hidden>
                         <svg width="28" height="12" viewBox="0 0 28 12">
-                          <path d="M0 6h24m-5-5 5 5-5 5" fill="none" stroke="var(--lavender-300)" strokeOpacity=".6" strokeWidth="1.5" />
+                          <path d="M0 6h22" fill="none" stroke="var(--indigo-400)" strokeWidth="1.5" className="flow-dash" />
+                          <path d="M19 1l5 5-5 5" fill="none" stroke="var(--lavender-300)" strokeOpacity=".7" strokeWidth="1.5" />
                         </svg>
                       </div>
                     ) : null}
                     <button
                       onClick={() => onSelect(s.id)}
+                      style={{ animationDelay: `${i * 70}ms` }}
                       className={cx(
-                        "min-w-[150px] shrink-0 rounded-2xl border px-3.5 py-3 text-left transition-colors",
+                        "anim-fade-up lift min-w-[150px] shrink-0 rounded-2xl border px-3.5 py-3 text-left",
                         selected === s.id ? "border-indigo-400 bg-sapphire-600/20" : "border-line bg-panel-strong hover:border-lavender-300/50",
                         s.status === "error" && "border-danger/60",
                       )}

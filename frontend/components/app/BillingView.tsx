@@ -2,6 +2,7 @@
 
 import { type FormEvent, useState } from "react";
 
+import { CountUp } from "@/components/motion/CountUp";
 import { usePoll } from "@/lib/usePoll";
 import { api, type Billing } from "@/lib/workspace";
 
@@ -121,7 +122,7 @@ function Limits({ b, onChange }: { b: Billing; onChange: (b: Billing) => void })
         <span>resets {new Date(b.month.resets_at).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</span>
       </div>
       <div className="mb-5 h-2 overflow-hidden rounded-full bg-bg-0/70">
-        <div className={cx("h-full rounded-full", pct >= 90 ? "bg-warning" : "bg-indigo-400")} style={{ width: `${pct}%` }} />
+        <div className={cx("anim-grow-x h-full rounded-full transition-[width] duration-700", pct >= 90 ? "bg-warning" : "bg-indigo-400")} style={{ width: `${pct}%` }} />
       </div>
       <form onSubmit={save} className="space-y-4">
         <label className="block space-y-1.5">
@@ -156,7 +157,14 @@ export function BillingView() {
   const [override, setOverride] = useState<Billing | null>(null);
   const b = override ?? billing.data;
   if (billing.error && !b) return <ErrorNote>{billing.error}</ErrorNote>;
-  if (!b) return <Spinner className="h-6 w-6" />;
+  if (!b)
+    return (
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {[0, 1, 2, 3].map((i) => (
+          <div key={i} className="skeleton h-20" />
+        ))}
+      </div>
+    );
 
   return (
     <div className="space-y-6">
@@ -164,11 +172,11 @@ export function BillingView() {
         <h1 className="text-[28px] font-semibold tracking-tight">Billing</h1>
         <p className="mt-1 text-[15px] text-text-300">Pay as you go: prepaid credit, charged per unit of work. No subscription.</p>
       </div>
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <Stat label="Credit balance" value={money(b.balance_cents)} />
-        <Stat label="Spent this month" value={money(b.month.spent_cents)} />
+      <div className="stagger grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <Stat label="Credit balance" value={<CountUp value={b.balance_cents / 100} format={(n) => `$${n.toFixed(2)}`} />} />
+        <Stat label="Spent this month" value={<CountUp value={b.month.spent_cents / 100} format={(n) => `$${n.toFixed(2)}`} />} />
         <Stat label="Monthly limit" value={money(b.month.limit_cents)} />
-        <Stat label="Repositories" value={b.repos} />
+        <Stat label="Repositories" value={<CountUp value={b.repos} />} />
       </div>
       <div className="grid gap-5 lg:grid-cols-2">
         <TopUp b={b} onChange={setOverride} />

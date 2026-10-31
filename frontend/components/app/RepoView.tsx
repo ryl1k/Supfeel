@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { type FormEvent, useEffect, useState } from "react";
 
 import { ArrowRight, Refresh } from "@/components/ui/icons";
@@ -243,14 +243,22 @@ function Settings({ repo, onSaved }: { repo: Repo; onSaved: () => void }) {
 
 export function RepoView() {
   const { id } = useParams<{ id: string }>();
-  const [tab, setTab] = useState<Tab>("overview");
+  const initial = useSearchParams().get("tab") as Tab | null;
+  const [tab, setTab] = useState<Tab>(initial ?? "overview");
   const repo = usePoll(() => api.repo(id), id, 2500, (d) => !d || d.status === "indexing" || d.status === "pending");
   const tickets = usePoll(() => api.tickets(id), id, 10_000);
   const [reindexing, setReindexing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   if (repo.error && !repo.data) return <ErrorNote>{repo.error}</ErrorNote>;
-  if (!repo.data) return <Spinner className="h-6 w-6" />;
+  if (!repo.data)
+    return (
+      <div className="space-y-4">
+        <div className="skeleton h-12 w-1/2" />
+        <div className="skeleton h-10" />
+        <div className="skeleton h-80" />
+      </div>
+    );
   const r = repo.data;
 
   const reindex = async () => {
@@ -320,6 +328,7 @@ export function RepoView() {
         ]}
       />
 
+      <div key={tab} className="anim-fade-up">
       {tab === "overview" ? <Overview repo={r} /> : null}
       {tab === "connect" ? <ConnectPanel repo={r} /> : null}
       {tab === "modules" ? <Modules repo={r} /> : null}
@@ -332,6 +341,7 @@ export function RepoView() {
       ) : null}
       {tab === "index" ? <IndexJobs repo={r} /> : null}
       {tab === "settings" ? <Settings repo={r} onSaved={() => repo.refresh()} /> : null}
+      </div>
     </div>
   );
 }

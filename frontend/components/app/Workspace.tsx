@@ -21,9 +21,10 @@ export function JobProgress({ repo }: { repo: Repo }) {
         <span>{phase}…</span>
         {pct !== null && p.phase === "embed" ? <span>{pct}%</span> : null}
       </div>
-      <div className="h-1.5 overflow-hidden rounded-full bg-bg-0/70">
+      <div className="relative h-1.5 overflow-hidden rounded-full bg-bg-0/70">
+        <div className="skeleton absolute inset-0 rounded-full" />
         <div
-          className="h-full rounded-full bg-indigo-400 transition-all"
+          className="relative h-full rounded-full bg-indigo-400 transition-all duration-700"
           style={{ width: `${p.phase === "explain" ? 90 : p.phase === "embed" && pct !== null ? 20 + pct * 0.65 : 10}%` }}
         />
       </div>
@@ -31,10 +32,10 @@ export function JobProgress({ repo }: { repo: Repo }) {
   );
 }
 
-function RepoCard({ repo }: { repo: Repo }) {
+export function RepoCard({ repo }: { repo: Repo }) {
   const langs = Object.entries(repo.stats.languages ?? {}).slice(0, 4);
   return (
-    <Link href={`/app/repos/${repo.id}`} className="group block rounded-[20px] border border-line bg-panel p-5 transition-colors hover:border-lavender-300/50">
+    <Link href={`/app/repos/${repo.id}`} className="lift group block rounded-[20px] border border-line bg-panel p-5">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="truncate text-[16px] font-semibold text-text-100">{repo.full_name}</div>
@@ -64,7 +65,7 @@ function RepoCard({ repo }: { repo: Repo }) {
   );
 }
 
-function ImportCard({ status, onImported }: { status: GithubStatus | null; onImported: (id: string) => void }) {
+export function ImportCard({ status, onImported }: { status: GithubStatus | null; onImported: (id: string) => void }) {
   const [repo, setRepo] = useState("");
   const [local, setLocal] = useState("");
   const [busy, setBusy] = useState(false);
@@ -105,7 +106,7 @@ function ImportCard({ status, onImported }: { status: GithubStatus | null; onImp
   );
 }
 
-function GithubCard({ status }: { status: GithubStatus | null }) {
+export function GithubCard({ status }: { status: GithubStatus | null }) {
   if (!status) return <Card title="GitHub">{<Spinner />}</Card>;
   const label = { app: "GitHub App connected", token: "Personal token", anonymous: "Public repos only" }[status.auth];
   return (
