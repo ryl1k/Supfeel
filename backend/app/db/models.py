@@ -263,7 +263,8 @@ class KbChunk(Base):
     text: Mapped[str] = mapped_column(Text)
     audience: Mapped[str] = mapped_column(String(20))
     tags: Mapped[list[str]] = mapped_column(ARRAY(String), default=list)
-    content_hash: Mapped[str] = mapped_column(String(64), unique=True)
+    content_hash: Mapped[str] = mapped_column(String(64), unique=True)  # sha256(embedding_model + text)
+    embedding_model: Mapped[str] = mapped_column(String(60), index=True)
     embedding: Mapped[list[float]] = mapped_column(Vector(EMBEDDING_DIM))
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
